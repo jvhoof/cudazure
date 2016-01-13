@@ -1,0 +1,365 @@
+﻿{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "location": {
+            "type": "string"
+        },
+        "adminPassword": {
+            "type": "securestring",
+            "metadata": {
+                "description": "Password for the NG"
+            }
+        },
+        "storageAccountName": {
+            "type": "string",
+            "metadata": {
+                "description": "Unique DNS Name for the Storage Account of the NextGen Firewall"
+            }
+        },
+        "dnsNameForNGF": {
+            "type": "string",
+            "metadata": {
+                "description": "Unique DNS Name for the Public IP used to access the NG."
+            }
+        },
+        "vNetResourceGroup": {
+            "type": "string",
+            "metadata": {
+                "description": "Resource Group for the VNET"
+            }
+        },
+        "prefix": {
+            "type": "string",
+            "metadata": {
+                "description": "identifying prefix for all VM's being build. e.g WE-PROD would become WE-PROD-VM-NG"
+            }
+        },
+        "vNETName": {
+            "type": "string",
+            "metadata": {
+                "description": "VNET Name where the NG F will be installed"
+            }
+        },
+        "subnetNameNGF": {
+            "type": "string",
+            "metadata": {
+                "description": "NextGen Firewall Subnet Name"
+            }
+        },
+        "subnetPrefixNGF": {
+            "type": "string",
+            "metadata": {
+                "description": "NextGen Firewall Subnet IP Range"
+            }            
+        },
+        "imageSKU": {
+            "type": "string",
+            "metadata": {
+                "description": "SKU Hourly (PAYG) or BYOL (Bring your own license)"
+            },
+            "allowedValues": [ "hourly", "byol" ]
+        },
+        "vmSize": {
+            "type": "string",
+            "allowedValues": [
+                "Standard_A1",
+                "Standard_A2",
+                "Standard_A3",
+                "Standard_A4",
+                "Standard_D1",
+                "Standard_D2",
+                "Standard_D3",
+                "Standard_D4"
+            ],
+            "metadata": {
+                "description": "Size of instances"
+            }
+        }        
+    },
+    "variables": {
+        "imagePublisher": "barracudanetworks",
+        "imageOffer": "barracuda-ng-firewall",
+        "NextGenFirewallAvailabilitySet": "[concat(parameters('prefix'),'-AV-NGF')]",
+        "nicNamePrefix": "[concat(parameters('prefix'),'-NIC-NGF')]",
+        "vmNamePrefix": "[concat(parameters('prefix'),'-VM-NGF')]",
+        "publicIPAddressName": "[concat(parameters('prefix'),'-LBIP-NGF')]",
+        "loadBalancerName": "[concat(parameters('prefix'),'-LB-NGF')]",
+        "adminUsername": "azureuser",
+        "numberOfInstances": 2,
+        "storageAccountType": "Standard_LRS",
+        "publicIPAddressType": "Static",
+        "vmStorageAccountContainerName": "vhds",
+        "vnetID": "[resourceId(parameters('vNetResourceGroup'),'Microsoft.Network/virtualNetworks',parameters('vNETName'))]",
+        "subnetRef": "[concat(variables('vnetID'),'/subnets/',parameters('subnetNameNGF'))]",
+        "lbID": "[resourceId('Microsoft.Network/loadBalancers',variables('loadBalancerName'))]",
+        "PublicIPID": "[resourceId('Microsoft.Network/publicIPAddresses',variables('publicIPAddressName'))]",
+        "NGPIPID": "[resourceId('Microsoft.Network/publicIPAddresses',variables('nicNamePrefix'))]",
+        "frontEndIPConfigID": "[concat(variables('lbID'),'/frontendIPConfigurations/loadBalancerFrontend')]",
+        "lbPoolID": "[concat(variables('lbID'),'/backendAddressPools/loadBalancerBackend')]",
+        "lbProbeID": "[concat(variables('lbID'),'/probes/tcpProbe')]"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Storage/storageAccounts",
+            "name": "[parameters('storageAccountName')]",
+            "apiVersion": "2015-05-01-preview",
+            "location": "[parameters('location')]",
+            "tags": {
+                "displayName": "StorageAccount"
+            },
+            "properties": {
+                "accountType": "[variables('storageAccountType')]"
+            }
+        },
+        {
+            "apiVersion": "2015-06-15",
+            "type": "Microsoft.Network/publicIPAddresses",
+            "name": "[variables('publicIPAddressName')]",
+            "location": "[parameters('location')]",
+            "tags": {
+                "displayName": "LoadBalancedNGIP"
+            },
+            "properties": {
+                "publicIPAllocationMethod": "[variables('publicIPAddressType')]",
+                "dnsSettings": {
+                    "domainNameLabel": "[parameters('dnsNameForNGF')]"
+                }
+            }
+        },
+        {
+            "apiVersion": "2015-06-15",
+            "type": "Microsoft.Network/publicIPAddresses",
+            "name": "[concat(variables('nicNamePrefix'), copyindex())]",
+            "copy": {
+                "name": "PIPLoop",
+                "count": "[variables('numberOfInstances')]"
+            },
+            "location": "[parameters('location')]",
+            "properties": {
+                "publicIPAllocationMethod": "Dynamic"
+
+            }
+        },
+        {
+            "name": "[variables('NextGenFirewallAvailabilitySet')]",
+            "type": "Microsoft.Compute/availabilitySets",
+            "location": "[parameters('location')]",
+            "apiVersion": "2015-06-15",
+            "dependsOn": [ ],
+            "tags": {
+                "displayName": "NGAVSet"
+            },
+            "properties": { }
+        },
+
+        {
+            "apiVersion": "2015-05-01-preview",
+            "type": "Microsoft.Network/networkInterfaces",
+            "name": "[concat(variables('nicNamePrefix'), copyindex())]",
+            "location": "[parameters('location')]",
+            "copy": {
+                "name": "nicLoop",
+                "count": "[variables('numberOfInstances')]"
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Network/loadBalancers/', variables('loadBalancerName'))]",
+                "[concat('Microsoft.Network/publicIPAddresses/',variables('nicNamePrefix'), copyindex())]"
+            ],
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "properties": {
+
+                            "privateIPAllocationMethod": "Dynamic",
+                            "publicIPAddress": {
+                                "id" :  "[resourceId('Microsoft.Network/publicIPAddresses/', concat(variables('nicNamePrefix'), copyindex()))]"
+                            },
+                            "subnet": {
+                                "id": "[variables('subnetRef')]"
+                            },
+                            "loadBalancerBackendAddressPools": [
+                                {
+                                    "id": "[concat(variables('lbID'), '/backendAddressPools/LoadBalancerBackend')]"
+                                }
+                            ]
+
+
+                        }
+
+                    }
+                ]
+            }
+        },
+        {
+            "apiVersion": "2015-06-15",
+            "name": "[variables('loadBalancerName')]",
+            "type": "Microsoft.Network/loadBalancers",
+            "location": "[parameters('location')]",
+            "tags": {
+                "displayName": "ngLB"
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Network/publicIPAddresses/', variables('publicIPAddressName'))]"
+
+            ],
+            "properties": {
+                "frontendIPConfigurations": [
+                    {
+                        "name": "loadBalancerFrontEnd",
+                        "properties": {
+                            "publicIPAddress": {
+                                "id": "[variables('PublicIPID')]"
+                            }
+                        }
+                    }
+                ],
+                "backendAddressPools": [
+                    {
+                        "name": "loadBalancerBackend"
+                    }
+                ],
+                "inboundNatRules": [
+
+                ],
+                "loadBalancingRules": [
+                    {
+                        "name": "TinaTCP",
+                        "properties": {
+                            "frontendIPConfiguration": {
+                                "id": "[variables('frontEndIPConfigID')]"
+                            },
+                            "backendAddressPool": {
+                                "id": "[variables('lbPoolID')]"
+                            },
+                            "protocol": "Tcp",
+                            "frontendPort": 691,
+                            "backendPort": 691,
+                            "enableFloatingIP": false,
+                            "idleTimeoutInMinutes": 5,
+                            "probe": {
+                                "id": "[variables('lbProbeID')]"
+                            }
+                        }
+                    },
+
+                    {
+                        "name": "IPSec4500",
+                        "properties": {
+                            "frontendIPConfiguration": {
+                                "id": "[variables('frontEndIPConfigID')]"
+                            },
+                            "backendAddressPool": {
+                                "id": "[variables('lbPoolID')]"
+                            },
+                            "protocol": "Udp",
+                            "frontendPort": 4500,
+                            "backendPort": 4500,
+                            "enableFloatingIP": false,
+                            "idleTimeoutInMinutes": 5,
+                            "probe": {
+                                "id": "[variables('lbProbeID')]"
+                            }
+                        }
+                    },
+                    {
+                        "name": "IPSec500",
+                        "properties": {
+                            "frontendIPConfiguration": {
+                                "id": "[variables('frontEndIPConfigID')]"
+                            },
+                            "backendAddressPool": {
+                                "id": "[variables('lbPoolID')]"
+                            },
+                            "protocol": "Udp",
+                            "frontendPort": 500,
+                            "backendPort": 500,
+                            "enableFloatingIP": false,
+                            "idleTimeoutInMinutes": 5,
+                            "probe": {
+                                "id": "[variables('lbProbeID')]"
+                            }
+                        }
+                    }
+                ],
+                "probes": [
+                    {
+                        "name": "tcpProbe",
+                        "properties": {
+                            "protocol": "Tcp",
+                            "port": 691,
+                            "intervalInSeconds": 5,
+                            "numberOfProbes": 2
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "apiVersion": "2015-06-15",
+            "type": "Microsoft.Compute/virtualMachines",
+            "name": "[concat(variables('vmNamePrefix'), copyindex())]",
+            "copy": {
+                "name": "virtualMachineLoop",
+                "count": "[variables('numberOfInstances')]"
+            },
+            "location": "[parameters('location')]",
+            "plan": {
+                "name": "[parameters('imageSKU')]",
+                "Product": "[variables('imagePublisher')]",
+                "Publisher": "[variables('imagePublisher')]"
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Storage/storageAccounts/', parameters('storageAccountName'))]",
+                "[concat('Microsoft.Network/networkInterfaces/', variables('nicNamePrefix'), copyindex())]",
+                "[concat('Microsoft.Compute/availabilitySets/', variables('NextGenFirewallAvailabilitySet'))]"
+            ],
+            "properties": {
+                "availabilitySet": {
+                    "id": "[resourceId('Microsoft.Compute/availabilitySets',variables('NextGenFirewallAvailabilitySet'))]"
+                },
+                "hardwareProfile": {
+                    "vmSize": "[parameters('vmSize')]"
+                },
+                "osProfile": {
+                    "computerName": "[concat(variables('vmNamePrefix'), copyIndex())]",
+                    "adminUsername": "[variables('adminUsername')]",
+                    "adminPassword": "[parameters('adminPassword')]"
+                },
+                "storageProfile": {
+                    "imageReference": {
+                        "publisher": "[variables('imagePublisher')]",
+                        "offer": "[variables('imageOffer')]",
+                        "sku": "[parameters('imageSKU')]",
+                        "version": "latest"
+                    },
+                    "osDisk": {
+                        "name": "osdisk",
+                        "vhd": {
+                            "uri": "[concat('http://',parameters('storageAccountName'),'.blob.core.windows.net/vhds/','ngosdisk', copyindex(), '.vhd')]"
+                        },
+                        "caching": "ReadWrite",
+                        "createOption": "FromImage"
+                    }
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces',concat(variables('nicNamePrefix'),copyindex()))]"
+                        }
+                    ]
+                },
+                "diagnosticsProfile": {
+                    "bootDiagnostics": {
+                        "enabled": "true",
+                        "storageUri": "[concat('http://',parameters('storageAccountName'),'.blob.core.windows.net')]"
+                    }
+                }
+            }
+        }
+
+
+
+    ]
+        }

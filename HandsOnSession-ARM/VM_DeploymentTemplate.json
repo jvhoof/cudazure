@@ -1,0 +1,158 @@
+﻿{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "location": {
+            "type": "string"
+        },
+        "newStorageAccountName": {
+            "type": "string",
+            "metadata": {
+                "description": "Unique DNS Name for the Storage Account where the Virtual Machine's disks will be placed."
+            }
+        },
+        "adminPassword": {
+            "type": "securestring",
+            "metadata": {
+                "description": "Password for the Webservers."
+            }
+        },
+        "VNetResourceGroup": {
+            "type": "string"
+        },
+        "vNETName": {
+            "type": "string"
+        },
+        "PrefixName": {
+            "type": "string"
+        }
+    },
+    "variables": {
+        "WebAVSetName" :  "[concat(parameters('PrefixName'),'WebAV')]",
+        "vmNamePrefix": "[concat(parameters('PrefixName'),'-Web')]",
+        "nicNamePrefix": "VMNIC",
+        "adminUsername": "azureuser",
+        "imagePublisher": "MicrosoftWindowsServer",
+        "imageOffer": "WindowsServer",
+        "numberOfInstances": 2,
+        "subnetName": "Web",
+        "subnetPrefix": "10.3.1.0/24",
+        "storageAccountType": "Standard_LRS",
+        "publicIPAddressType": "Dynamic",
+        "vmStorageAccountContainerName": "vhds",
+        "vmSize": "Standard_A1",
+        "vnetID": "[resourceId(parameters('VNetResourceGroup'),'Microsoft.Network/virtualNetworks',parameters('vNETName'))]",
+        "subnetRef": "[concat(variables('vnetID'),'/subnets/',variables('subnetName'))]"
+
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Storage/storageAccounts",
+            "name": "[parameters('newStorageAccountName')]",
+            "apiVersion": "2015-05-01-preview",
+            "location": "[parameters('location')]",
+            "tags": {
+                "displayName": "StorageAccount"
+            },
+            "properties": {
+                "accountType": "[variables('storageAccountType')]"
+            }
+        },
+        {
+            "name": "[variables('WebAVSetName')]",
+            "type": "Microsoft.Compute/availabilitySets",
+            "location": "[parameters('location')]",
+            "apiVersion": "2015-06-15",
+            "dependsOn": [ ],
+            "tags": {
+                "displayName": "WebAVSet"
+            },
+            "properties": { }
+        },
+        {
+            "apiVersion": "2015-05-01-preview",
+            "type": "Microsoft.Network/networkInterfaces",
+            "name": "[concat(variables('nicNamePrefix'), copyindex())]",
+            "location": "[parameters('location')]",
+            "copy": {
+                "name": "nicLoop",
+                "count": "[variables('numberOfInstances')]"
+            },
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "properties": {
+                            "privateIPAllocationMethod": "Dynamic",
+                            "subnet": {
+                                "id": "[variables('subnetRef')]"
+                            }
+                          
+
+                        }
+
+                    }
+                ]
+            }
+        },
+        {
+            "apiVersion": "2015-06-15",
+            "type": "Microsoft.Compute/virtualMachines",
+            "name": "[concat(variables('vmNamePrefix'), copyindex())]",
+            "copy": {
+                "name": "virtualMachineLoop",
+                "count": "[variables('numberOfInstances')]"
+            },
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[concat('Microsoft.Storage/storageAccounts/', parameters('newstorageAccountName'))]",
+                "[concat('Microsoft.Network/networkInterfaces/', variables('nicNamePrefix'), copyindex())]",
+                "[concat('Microsoft.Compute/availabilitySets/', variables('WebAVSetName'))]"
+            ],
+            "properties": {
+                "availabilitySet": {
+                    "id": "[resourceId('Microsoft.Compute/availabilitySets',variables('WebAVSetName'))]"
+                },
+                "hardwareProfile": {
+                    "vmSize": "[variables('vmSize')]"
+                },
+                "osProfile": {
+                    "computerName": "[concat(variables('vmNamePrefix'), copyIndex())]",
+                    "adminUsername": "[variables('adminUsername')]",
+                    "adminPassword": "[parameters('adminPassword')]"
+                },
+                "storageProfile": {
+                    "imageReference": {
+                        "publisher": "[variables('imagePublisher')]",
+                        "offer": "[variables('imageOffer')]",
+                        "sku": "2012-R2-Datacenter",
+                        "version": "latest"
+                    },
+                    "osDisk": {
+                        "name": "osdisk",
+                        "vhd": {
+                            "uri": "[concat('http://',parameters('newstorageAccountName'),'.blob.core.windows.net/vhds/','osdisk', copyindex(), '.vhd')]"
+                        },
+                        "caching": "ReadWrite",
+                        "createOption": "FromImage"
+                    }
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces',concat(variables('nicNamePrefix'),copyindex()))]"
+                        }
+                    ]
+                },
+                "diagnosticsProfile": {
+                    "bootDiagnostics": {
+                        "enabled": "true",
+                        "storageUri": "[concat('http://',parameters('newStorageAccountName'),'.blob.core.windows.net')]"
+                    }
+                }
+            }
+        }
+
+
+    ]
+        }

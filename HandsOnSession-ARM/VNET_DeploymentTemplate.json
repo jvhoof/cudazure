@@ -1,0 +1,98 @@
+﻿{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "location": {
+            "type": "string"
+        },
+        "vNETName": { 
+            "type": "string" 
+        },        
+        "vNETPrefix": {
+            "type": "string"
+        },
+        "subnetNameNGF": {
+            "type": "string"
+        },
+        "subnetPrefixNGF": {
+            "type": "string"
+        },
+        "subnetNameWAF": {
+            "type": "string"
+        },
+        "subnetPrefixWAF": {
+            "type": "string"
+        },
+        "subnetNameWEB": {
+            "type": "string"
+        },
+        "subnetPrefixWEB": {
+            "type": "string"
+        },
+        "subnetNameAPP": {
+            "type": "string"
+        },
+        "subnetPrefixAPP": {
+            "type": "string"
+        },
+        "subnetNameDB": {
+            "type": "string"
+        },
+        "subnetPrefixDB": {
+            "type": "string"
+        }
+    },
+    "variables": {
+    },
+    "resources": [{
+            "name": "[parameters('vNETName')]",
+            "type": "Microsoft.Network/virtualNetworks",
+            "location": "[parameters('location')]",
+            "apiVersion": "2015-06-15",
+            "dependsOn": [ ],
+            "tags": {
+                "displayName": "v2vNET"
+            },
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "[parameters('vNETPrefix')]"
+                    ]
+                },
+                "subnets": [
+                    {
+                        "name": "[parameters('subnetNameNGF')]",
+                        "properties": {
+                            "addressPrefix": "[parameters('subnetPrefixNGF')]"
+                        }
+                    },
+                    {
+                        "name": "[parameters('subnetNameWAF')]",
+                        "properties": {
+                            "addressPrefix": "[parameters('subnetPrefixWAF')]"
+                        }
+                    },
+                    {
+                        "name": "[parameters('subnetNameWEB')]",
+                        "properties": {
+                            "addressPrefix": "[parameters('subnetPrefixWEB')]"
+                        }
+                    },
+                    {
+                        "name": "[parameters('subnetNameAPP')]",
+                        "properties": {
+                            "addressPrefix": "[parameters('subnetPrefixAPP')]"
+                        }
+                    },
+                    {
+                        "name": "[parameters('subnetNameDB')]",
+                        "properties": {
+                            "addressPrefix": "[parameters('subnetPrefixDB')]"
+                        }
+                    }
+                    ]
+            }
+    }],
+    "outputs": {
+    }
+}

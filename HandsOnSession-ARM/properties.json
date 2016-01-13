@@ -1,0 +1,21 @@
+{
+  "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "location": { "value": "North Europe" },
+    "dnsNameForNGF": { "value": "ngfw" },
+    "dnsNameForWAF": { "value": "ngfw" },
+    "vNETName": { "value": "jvh7vnet" },
+    "vNETPrefix": { "value": "172.16.70.0/24" },
+    "SubnetNameNGF": { "value": "jvh7-subnet-ngf" },
+    "SubnetPrefixNGF": {"value": "172.16.70.0/28" },
+    "SubnetNameWAF": { "value": "jvh7-subnet-waf" },
+    "SubnetPrefixWAF": {"value": "172.16.70.16/28" },
+    "SubnetNameWEB": { "value": "jvh7-subnet-web" },
+    "SubnetPrefixWEB": {"value": "172.16.70.32/28" },
+    "SubnetNameAPP": { "value": "jvh7-subnet-app" },
+    "SubnetPrefixAPP": {"value": "172.16.70.48/28" },
+    "SubnetNameDB": { "value": "jvh7-subnet-db" },
+    "SubnetPrefixDB": {"value": "172.16.70.64/28" }
+  }
+}
