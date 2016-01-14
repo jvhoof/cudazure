@@ -3,43 +3,59 @@
     "contentVersion": "1.0.0.0",
     "parameters": {
         "location": {
-            "type": "string"
+            "type": "string",
+            "defaultValue": "West Europe",
+            "metadata": {
+                "description": "Location to deploy (e.g. West Europe)"
+            }
         },
         "vNETName": { 
-            "type": "string" 
+            "type": "string", 
+            "metadata": {
+                "description": "Name of the VNET (e.g. cuda-vnet)"
+            }
         },        
         "vNETPrefix": {
-            "type": "string"
+            "type": "string",
+            "metadata": {
+                "description": "Network range of the VNET (e.g. 172.16.136.0/22)"
+            }
         },
         "subnetNameNGF": {
-            "type": "string"
+            "type": "string",
+            "metadata": {
+                "description": "Name of the Subnet containing the NextGen Firewall (e.g. cuda-subnet-ngf)"
+            }
         },
         "subnetPrefixNGF": {
-            "type": "string"
+            "type": "string",
+            "metadata": {
+                "description": "Network range of the Subnet containing the Web Application Firewall (e.g. 172.16.136.0/24)"
+            }
         },
         "subnetNameWAF": {
-            "type": "string"
+            "type": "string",
+            "metadata": {
+                "description": "Name of the Subnet containing the Web Application Firewall (e.g. cuda-subnet-waf)"
+            }
         },
         "subnetPrefixWAF": {
-            "type": "string"
+            "type": "string",
+            "metadata": {
+                "description": "Network range of the Subnet containing the Web Application Firewall (e.g. 172.16.137.0/24)"
+            }
         },
         "subnetNameWEB": {
-            "type": "string"
+            "type": "string",
+            "metadata": {
+                "description": "Name of the Subnet containing the Web Application (e.g. cuda-subnet-web)"
+            }
         },
         "subnetPrefixWEB": {
-            "type": "string"
-        },
-        "subnetNameAPP": {
-            "type": "string"
-        },
-        "subnetPrefixAPP": {
-            "type": "string"
-        },
-        "subnetNameDB": {
-            "type": "string"
-        },
-        "subnetPrefixDB": {
-            "type": "string"
+            "type": "string",
+            "metadata": {
+                "description": "Network range of the Subnet containing the Web Application (e.g. 172.16.138.0/24)"
+            }
         }
     },
     "variables": {
@@ -76,18 +92,6 @@
                         "name": "[parameters('subnetNameWEB')]",
                         "properties": {
                             "addressPrefix": "[parameters('subnetPrefixWEB')]"
-                        }
-                    },
-                    {
-                        "name": "[parameters('subnetNameAPP')]",
-                        "properties": {
-                            "addressPrefix": "[parameters('subnetPrefixAPP')]"
-                        }
-                    },
-                    {
-                        "name": "[parameters('subnetNameDB')]",
-                        "properties": {
-                            "addressPrefix": "[parameters('subnetPrefixDB')]"
                         }
                     }
                     ]

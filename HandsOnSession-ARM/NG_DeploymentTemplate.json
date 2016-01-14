@@ -3,7 +3,11 @@
     "contentVersion": "1.0.0.0",
     "parameters": {
         "location": {
-            "type": "string"
+            "type": "string",
+            "defaultValue": "West Europe",
+            "metadata": {
+                "description": "Location to deploy (e.g. West Europe)"
+            }
         },
         "adminPassword": {
             "type": "securestring",
@@ -38,19 +42,19 @@
         "vNETName": {
             "type": "string",
             "metadata": {
-                "description": "VNET Name where the NG F will be installed"
+                "description": "Name of the VNET (e.g. cuda-vnet)"
             }
         },
         "subnetNameNGF": {
             "type": "string",
             "metadata": {
-                "description": "NextGen Firewall Subnet Name"
+                "description": "Name of the Subnet containing the NextGen Firewall (e.g. cuda-subnet-ngf)"
             }
         },
         "subnetPrefixNGF": {
             "type": "string",
             "metadata": {
-                "description": "NextGen Firewall Subnet IP Range"
+                "description": "Network range of the Subnet containing the NextGen Firewall (e.g. 172.16.136.0/24)"
             }            
         },
         "imageSKU": {
@@ -86,7 +90,7 @@
         "publicIPAddressName": "[concat(parameters('prefix'),'-LBIP-NGF')]",
         "loadBalancerName": "[concat(parameters('prefix'),'-LB-NGF')]",
         "adminUsername": "azureuser",
-        "numberOfInstances": 2,
+        "numberOfInstances": 1,
         "storageAccountType": "Standard_LRS",
         "publicIPAddressType": "Static",
         "vmStorageAccountContainerName": "vhds",

@@ -3,7 +3,11 @@
     "contentVersion": "1.0.0.0",
     "parameters": {
         "location": {
-            "type": "string"
+            "type": "string",
+            "defaultValue": "West Europe",
+            "metadata": {
+                "description": "Location to deploy (e.g. West Europe)"
+            }
         },
         "adminPassword": {
             "type": "securestring",
@@ -38,19 +42,19 @@
         "vNETName": {
             "type": "string",
             "metadata": {
-                "description": "VNET Name where the Web Application Firewall will be installed"
+                "description": "Name of the VNET (e.g. cuda-vnet)"
             }
         },
         "subnetNameWAF": {
             "type": "string",
             "metadata": {
-                "description": "Web Application Firewall Subnet Name"
+                "description": "Name of the Subnet containing the Web Application Firewall (e.g. cuda-subnet-waf)"
             }
         },
         "subnetPrefixWAF": {
             "type": "string",
             "metadata": {
-                "description": "Web Application Firewall Subnet IP Range"
+                "description": "Network range of the Subnet containing the Web Application Firewall  (e.g. 172.16.137.0/24)"
             }            
         },
         "imageSKU": {
@@ -80,13 +84,13 @@
     "variables": {
         "imagePublisher": "barracudanetworks",
         "imageOffer": "waf",
-        "WAFAvailabilitySet" :  "[concat(parameters('prefix'),'-AV-WAF')]",
+        "WAFAvailabilitySet" : "[concat(parameters('prefix'),'-AV-WAF')]",
         "nicNamePrefix": "[concat(parameters('prefix'),'-NIC-WAF')]",
         "vmNamePrefix": "[concat(parameters('prefix'),'-VM-WAF')]",
         "publicIPAddressName": "[concat(parameters('prefix'),'-LBIP-WAF')]",
         "loadBalancerName": "[concat(parameters('prefix'),'-LB-NGF')]",
         "adminUsername": "azureuser",
-        "numberOfInstances": 2,
+        "numberOfInstances": 1,
         "storageAccountType": "Standard_LRS",
         "publicIPAddressType": "Static",
         "vmStorageAccountContainerName": "vhds",

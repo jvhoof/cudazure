@@ -5,50 +5,78 @@
         "location": {
             "type": "string"
         },
-        "newStorageAccountName": {
+        "storageAccountName": {
             "type": "string",
             "metadata": {
-                "description": "Unique DNS Name for the Storage Account where the Virtual Machine's disks will be placed."
+                "description": "Unique DNS Name for the Storage Account where the Virtual Machine's disks will be placed"
             }
         },
         "adminPassword": {
             "type": "securestring",
             "metadata": {
-                "description": "Password for the Webservers."
+                "description": "Password for the Webserver(s)"
             }
         },
-        "VNetResourceGroup": {
-            "type": "string"
+        "vNetResourceGroup": {
+            "type": "string",
+            "metadata": {
+                "description": "Resource Group for the VNET"
+            }
         },
-        "vNETName": {
-            "type": "string"
+        "prefix": {
+            "type": "string",
+            "metadata": {
+                "description": "identifying prefix for all VM's being build. e.g WE-PROD would become WE-PROD-VM-NG"
+            }
         },
-        "PrefixName": {
-            "type": "string"
+        "vNETName": { 
+            "type": "string", 
+            "metadata": {
+                "description": "Name of the VNET (e.g. cuda-vnet)"
+            }
+        },        
+        "subnetNameWEB": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the Subnet containing the Web Server (e.g. cuda-subnet-web)"
+            }
+        },
+        "vmSize": {
+            "type": "string",
+            "allowedValues": [
+                "Standard_A1",
+                "Standard_A2",
+                "Standard_A3",
+                "Standard_A4",
+                "Standard_D1",
+                "Standard_D2",
+                "Standard_D3",
+                "Standard_D4"
+            ],
+            "metadata": {
+                "description": "Size of instances"
+            }
         }
     },
     "variables": {
-        "WebAVSetName" :  "[concat(parameters('PrefixName'),'WebAV')]",
-        "vmNamePrefix": "[concat(parameters('PrefixName'),'-Web')]",
-        "nicNamePrefix": "VMNIC",
+        "WEBAvailabilitySet" : "[concat(parameters('prefix'),'-AV-WEB')]",
+        "nicNamePrefix": "[concat(parameters('prefix'),'-NIC-WEB')]",
+        "vmNamePrefix": "[concat(parameters('prefix'),'-VM-WEB')]",
         "adminUsername": "azureuser",
         "imagePublisher": "MicrosoftWindowsServer",
         "imageOffer": "WindowsServer",
-        "numberOfInstances": 2,
-        "subnetName": "Web",
-        "subnetPrefix": "10.3.1.0/24",
+        "numberOfInstances": 1,
         "storageAccountType": "Standard_LRS",
         "publicIPAddressType": "Dynamic",
         "vmStorageAccountContainerName": "vhds",
-        "vmSize": "Standard_A1",
-        "vnetID": "[resourceId(parameters('VNetResourceGroup'),'Microsoft.Network/virtualNetworks',parameters('vNETName'))]",
-        "subnetRef": "[concat(variables('vnetID'),'/subnets/',variables('subnetName'))]"
+        "vnetID": "[resourceId(parameters('vNetResourceGroup'),'Microsoft.Network/virtualNetworks',parameters('vNETName'))]",
+        "subnetRef": "[concat(variables('vnetID'),'/subnets/',parameters('subnetNameWEB'))]"
 
     },
     "resources": [
         {
             "type": "Microsoft.Storage/storageAccounts",
-            "name": "[parameters('newStorageAccountName')]",
+            "name": "[parameters('storageAccountName')]",
             "apiVersion": "2015-05-01-preview",
             "location": "[parameters('location')]",
             "tags": {
@@ -59,7 +87,7 @@
             }
         },
         {
-            "name": "[variables('WebAVSetName')]",
+            "name": "[variables('WEBAvailabilitySet')]",
             "type": "Microsoft.Compute/availabilitySets",
             "location": "[parameters('location')]",
             "apiVersion": "2015-06-15",
@@ -105,16 +133,16 @@
             },
             "location": "[parameters('location')]",
             "dependsOn": [
-                "[concat('Microsoft.Storage/storageAccounts/', parameters('newstorageAccountName'))]",
+                "[concat('Microsoft.Storage/storageAccounts/', parameters('storageAccountName'))]",
                 "[concat('Microsoft.Network/networkInterfaces/', variables('nicNamePrefix'), copyindex())]",
-                "[concat('Microsoft.Compute/availabilitySets/', variables('WebAVSetName'))]"
+                "[concat('Microsoft.Compute/availabilitySets/', variables('WEBAvailabilitySet'))]"
             ],
             "properties": {
                 "availabilitySet": {
-                    "id": "[resourceId('Microsoft.Compute/availabilitySets',variables('WebAVSetName'))]"
+                    "id": "[resourceId('Microsoft.Compute/availabilitySets',variables('WEBAvailabilitySet'))]"
                 },
                 "hardwareProfile": {
-                    "vmSize": "[variables('vmSize')]"
+                    "vmSize": "[parameters('vmSize')]"
                 },
                 "osProfile": {
                     "computerName": "[concat(variables('vmNamePrefix'), copyIndex())]",
@@ -131,7 +159,7 @@
                     "osDisk": {
                         "name": "osdisk",
                         "vhd": {
-                            "uri": "[concat('http://',parameters('newstorageAccountName'),'.blob.core.windows.net/vhds/','osdisk', copyindex(), '.vhd')]"
+                            "uri": "[concat('http://',parameters('storageAccountName'),'.blob.core.windows.net/vhds/','osdisk', copyindex(), '.vhd')]"
                         },
                         "caching": "ReadWrite",
                         "createOption": "FromImage"
@@ -147,7 +175,7 @@
                 "diagnosticsProfile": {
                     "bootDiagnostics": {
                         "enabled": "true",
-                        "storageUri": "[concat('http://',parameters('newStorageAccountName'),'.blob.core.windows.net')]"
+                        "storageUri": "[concat('http://',parameters('storageAccountName'),'.blob.core.windows.net')]"
                     }
                 }
             }
