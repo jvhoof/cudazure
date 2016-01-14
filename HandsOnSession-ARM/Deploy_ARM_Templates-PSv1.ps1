@@ -137,7 +137,7 @@ $dnsNameForWAF = "$prefix-waf"
 # Deployment size for WAF and NGF
 $vmSizeNGF = "Standard_A1"
 $vmSizeWAF = "Standard_A1"
-$vmSizeWIN = "Standard_A1"
+$vmSizeWEB = "Standard_A1"
 
 # SKU BYOL or Hourly license type
 $imageSKU = "byol"
