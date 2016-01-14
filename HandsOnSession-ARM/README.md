@@ -2,7 +2,7 @@
 
 The following templates can be used to deploy the Barracuda solutions used in the Hands On Sessions.
 
-<img src="images/azurebuildingblock.png"/>
+<img src="images/azurebuildingblock2.png"/>
 
 Deploy Barracuda NextGen Firewall F-Series 
 <br/>
