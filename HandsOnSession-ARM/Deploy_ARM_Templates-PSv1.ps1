@@ -192,77 +192,24 @@ New-AzureRMResourceGroupDeployment -Name "Deploy_Web_Servers" -ResourceGroupName
 End of the section that deploys the VNET and NG's
 ##############################################################################################################>
 
-
-#Provide details of your Resource Groups and Config item names. This will need some modification to adapt to multiple routes.
-#if(!$ng_rg_name){$ng_rg_name = Read-Host "Please provide the Resource Group that the NG's are deployed in"}
-#if(!$vnet_rg_name){$vnet_rg_name = Read-Host "Please provide VNET Resource Group name"}
-
-
-
-
 #Enable IPForwarding for all the NG's, this doesn't work via the templates as it defaults to false regardless of the setting in the json
 
-#$ng_vms = (Get-AzureRMVM -ResourceGroupName $ng_rg_name | Where-Object -FilterScript {$_.Plan.Product -eq "barracuda-ng-firewall"})
+$ng_vms = (Get-AzureRMVM -ResourceGroupName $ng_rg_name | Where-Object -FilterScript {$_.Plan.Product -eq "barracuda-ng-firewall"})
 
-#ForEach($ng in $ng_vms){ 
-#$i++
-#Get's the name of the NIC from the Interface ID
-#    $nic_name = $ng.NetworkInterfaceIDs.Split("/")[($ng).NetworkInterfaceIDs.Split("/").Count-1]
+ForEach($ng in $ng_vms){ 
+    $i++
+    #Get's the name of the NIC from the Interface ID
+    $nic_name = $ng.NetworkInterfaceIDs.Split("/")[($ng).NetworkInterfaceIDs.Split("/").Count-1]
 
     #Get the NIC Configuration, this presumes the NIC is in the same Resource Group as it's NG.
-#    $nic = Get-AzureRMNetworkInterface -ResourceGroupName $ng_rg_name -Name $nic_name
-#    $nic.EnableIPForwarding = "true"
+    $nic = Get-AzureRMNetworkInterface -ResourceGroupName $ng_rg_name -Name $nic_name
+    $nic.EnableIPForwarding = "true"
     #Apply the changed configuration against the NIC
-#    Set-AzureRMNetworkInterface -NetworkInterface $nic 
-#    if($i -eq 1){
-#       $gw=$($nic.IpConfigurations.PrivateIPAddress)
-#    }
-#    Write-Host "NG: $($ng.Name)"
-#    Write-Host "NG IP: $($nic.IpConfigurations.PrivateIPAddress)"
-#    Write-Host "NG IP: $($nic.EnableIPForwarding)"
-#}
-
-
-#Now create the route config. You could perhaps loop this section to ask the questions for each different route you wish to apply
-
-#$rt_rg_name = Read-Host "Please provide routing Resource Group name"
-#$rt_cfg_name = Read-Host "Please provide a name for the route"
-#$subnet_name = Read-Host "Please provide the name of subnet that the route will apply against"
-#$subnet_address_prefix = Read-Host "Please provide the CIDR of the subnet you will apply the route against"
-#$rt_name = Read-Host "Please provide the route table name"
-#$address_prefix = Read-Host "In CIDR format please provide the address to route for. `r`n If you wish the entire VNET to route via the NG use the address prefix for the vnet. `r`n If you use 0.0.0.0/0 only internet traffic will be impacted."
-#$next_hop_ip = Read-Host "Please provide the next hop IP"
-
-<#
-Not supported yet but when the Powershell supports the preview API this should work.
-
-#I created a new resource group for my routes, but you could use an existing one.
-New-AzureRMResourceGroup -Name $rt_rg_name -Location $location
-
-New-AzureRMResourceGroupDeployment -Name "Deploy_Routes_to_NG" -ResourceGroupName $rt_rg_name  `
--TemplateFile "..\Templates\UDR_DeploymentTemplate.json" -location $location `
- -vNetResourceGroup $vnet_rg_name -vNETName $vnet_name -routeTableName $rt_cfg_name -routeName $rt_name `
- -destinationNet "$($address_prefix)" -gatewayIP $next_hop_ip -subnetName $subnet_Name -Debug
-
-#>
-
-
-#I created a new resource group for my routes, but you could use an existing one.
-#New-AzureRMResourceGroup -Name $rt_rg_name -Location $location
-
-#Then create the Route configuration
-#$route_cfg = New-AzureRMRouteConfig -Name $rt_cfg_name -AddressPrefix $address_prefix -NextHopType VirtualAppliance -NextHopIpAddress $next_hop_ip
-
-#Now create the route table from the route configuration 
-#$routetable = New-AzureRMRouteTable -Name $rt_name -ResourceGroupName $rt_rg_name -Location $location -Route $route_cfg 
-
-#Now Set the route in Azure.
-#Set-AzurermRouteTable -RouteTable $routetable 
-
-#This next section associates the VNET and Subnet with the route
-
-#Get your VVNET 
-#$vnet = Get-AzureRMVirtualNetwork -ResourceGroupName $vnet_rg_name
-
-#Use the below command to apply the route table to the subnet config in the vnet
-#$newsubnetconfig = Set-AzureRMVirtualNetworkSubnetConfig -RouteTable $routetable -Vir
+    Set-AzureRMNetworkInterface -NetworkInterface $nic 
+    if($i -eq 1){
+       $gw=$($nic.IpConfigurations.PrivateIPAddress)
+    }
+    Write-Host "NG: $($ng.Name)"
+    Write-Host "NG IP: $($nic.IpConfigurations.PrivateIPAddress)"
+    Write-Host "NG IP: $($nic.EnableIPForwarding)"
+}
