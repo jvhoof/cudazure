@@ -160,7 +160,6 @@ New-AzureRMResourceGroupDeployment -Name "Deploy_$vnet_rg_name" -ResourceGroupNa
 
 
 # NextGen Firewall F-Series Deployment
-<#
 New-AzureRMResourceGroup -Name $ng_rg_name -Location $location
 
 New-AzureRMResourceGroupDeployment -Name "Deploy_Barracuda_NextGen" -ResourceGroupName $ng_rg_name `
@@ -169,27 +168,24 @@ New-AzureRMResourceGroupDeployment -Name "Deploy_Barracuda_NextGen" -ResourceGro
     -vNetResourceGroup "$vnet_rg_name" -prefix "$prefix" -vNETName "$vNETName" `
     -subnetNameNGF "$subnetNameNGF" -subnetPrefixNGF "$subnetPrefixNGF" `
     -vmSize $vmSizeNGF -imageSKU $imageSKU
-#>
 
 # Web Application Firewall - WAF Deployment
-<#
 New-AzureRMResourceGroup -Name $waf_rg_name -Location $location
+
 New-AzureRMResourceGroupDeployment -Name "Deploy_Barracuda_WAF" -ResourceGroupName $waf_rg_name `
     -TemplateFile "WAF_DeploymentTemplate.json" -location $location `
     -adminPassword $ng_password -storageAccount "$storageAccountWAF" -dnsNameForWAF "$dnsNameForWAF" `
     -vNetResourceGroup "$vnet_rg_name" -prefix "$prefix" -vNETName "$vNETName" `
     -subnetNameWAF "$subnetNameWAF" -subnetPrefixWAF "$subnetPrefixWAF" `
     -vmSize $vmSizeWAF -imageSKU $imageSKU
-#>
 
 #Web Server Resource
 New-AzureRMResourceGroup -Name $web_rg_name -Location $location
 New-AzureRMResourceGroupDeployment -Name "Deploy_Web_Servers" -ResourceGroupName $web_rg_name `
     -TemplateFile "WEB_DeploymentTemplate.json" -location $location `
-    -adminPassword $ng_password -storageAccount "$storageAccountWAF" `
+    -adminPassword $ng_password -storageAccount "$storageAccountWEB" `
     -vNetResourceGroup "$vnet_rg_name" -prefix "$prefix" -vNETName "$vNETName" `
-    -subnetNameWEB "$subnetNameWAF" -subnetPrefixWEB "$subnetPrefixWAF" `
-    -vmSize $vmSizeWEB
+    -subnetNameWEB "$subnetNameWAF" -vmSize $vmSizeWEB
 
 
 <##############################################################################################################
