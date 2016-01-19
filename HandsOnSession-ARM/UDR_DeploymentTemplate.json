@@ -3,7 +3,11 @@
     "contentVersion": "1.0.0.0",
     "parameters": {
         "location": {
-            "type": "string"
+            "type": "string",
+            "defaultValue": "West Europe", 
+            "metadata": {
+                "description": "Location to deploy (e.g. West Europe)"
+            }
         },
         "routeTableName": {
             "type": "string",
@@ -70,12 +74,11 @@
                 ],
                 "subnets": [
                     {
-                     "id" :  "[variables('subnetRef')]"
+                        "id": "[variables('subnetRef')]"
                     }
                 ]
             }
         }
     ],
-    "outputs": {
-    }
+    "outputs": {}
 }

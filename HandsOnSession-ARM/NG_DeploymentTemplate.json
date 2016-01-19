@@ -55,14 +55,17 @@
             "type": "string",
             "metadata": {
                 "description": "Network range of the Subnet containing the NextGen Firewall (e.g. 172.16.136.0/24)"
-            }            
+            }
         },
         "imageSKU": {
             "type": "string",
             "metadata": {
                 "description": "SKU Hourly (PAYG) or BYOL (Bring your own license)"
             },
-            "allowedValues": [ "hourly", "byol" ]
+            "allowedValues": [
+                "hourly",
+                "byol"
+            ]
         },
         "vmSize": {
             "type": "string",
@@ -79,7 +82,7 @@
             "metadata": {
                 "description": "Size of instances"
             }
-        }        
+        }
     },
     "variables": {
         "imagePublisher": "barracudanetworks",
@@ -125,10 +128,7 @@
                 "displayName": "LoadBalancedNGIP"
             },
             "properties": {
-                "publicIPAllocationMethod": "[variables('publicIPAddressType')]",
-                "dnsSettings": {
-                    "domainNameLabel": "[parameters('dnsNameForNGF')]"
-                }
+                "publicIPAllocationMethod": "[variables('publicIPAddressType')]"
             }
         },
         {
@@ -142,7 +142,6 @@
             "location": "[parameters('location')]",
             "properties": {
                 "publicIPAllocationMethod": "Dynamic"
-
             }
         },
         {
@@ -150,13 +149,12 @@
             "type": "Microsoft.Compute/availabilitySets",
             "location": "[parameters('location')]",
             "apiVersion": "2015-06-15",
-            "dependsOn": [ ],
+            "dependsOn": [],
             "tags": {
                 "displayName": "NGAVSet"
             },
-            "properties": { }
+            "properties": {}
         },
-
         {
             "apiVersion": "2015-05-01-preview",
             "type": "Microsoft.Network/networkInterfaces",
@@ -175,10 +173,9 @@
                     {
                         "name": "ipconfig1",
                         "properties": {
-
                             "privateIPAllocationMethod": "Dynamic",
                             "publicIPAddress": {
-                                "id" :  "[resourceId('Microsoft.Network/publicIPAddresses/', concat(variables('nicNamePrefix'), copyindex()))]"
+                                "id": "[resourceId('Microsoft.Network/publicIPAddresses/', concat(variables('nicNamePrefix'), copyindex()))]"
                             },
                             "subnet": {
                                 "id": "[variables('subnetRef')]"
@@ -188,10 +185,7 @@
                                     "id": "[concat(variables('lbID'), '/backendAddressPools/LoadBalancerBackend')]"
                                 }
                             ]
-
-
                         }
-
                     }
                 ]
             }
@@ -206,7 +200,6 @@
             },
             "dependsOn": [
                 "[concat('Microsoft.Network/publicIPAddresses/', variables('publicIPAddressName'))]"
-
             ],
             "properties": {
                 "frontendIPConfigurations": [
@@ -224,9 +217,7 @@
                         "name": "loadBalancerBackend"
                     }
                 ],
-                "inboundNatRules": [
-
-                ],
+                "inboundNatRules": [],
                 "loadBalancingRules": [
                     {
                         "name": "TinaTCP",
@@ -247,7 +238,6 @@
                             }
                         }
                     },
-
                     {
                         "name": "IPSec4500",
                         "properties": {
@@ -362,8 +352,5 @@
                 }
             }
         }
-
-
-
     ]
-        }
+}

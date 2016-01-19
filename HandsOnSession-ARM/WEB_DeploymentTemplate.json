@@ -3,7 +3,11 @@
     "contentVersion": "1.0.0.0",
     "parameters": {
         "location": {
-            "type": "string"
+            "type": "string",
+            "defaultValue": "West Europe", 
+            "metadata": {
+                "description": "Location to deploy (e.g. West Europe)"
+            }
         },
         "storageAccountName": {
             "type": "string",
@@ -29,12 +33,12 @@
                 "description": "identifying prefix for all VM's being build. e.g WE-PROD would become WE-PROD-VM-NG"
             }
         },
-        "vNETName": { 
-            "type": "string", 
+        "vNETName": {
+            "type": "string",
             "metadata": {
                 "description": "Name of the VNET (e.g. cuda-vnet)"
             }
-        },        
+        },
         "subnetNameWEB": {
             "type": "string",
             "metadata": {
@@ -59,7 +63,7 @@
         }
     },
     "variables": {
-        "WEBAvailabilitySet" : "[concat(parameters('prefix'),'-AV-WEB')]",
+        "WEBAvailabilitySet": "[concat(parameters('prefix'),'-AV-WEB')]",
         "nicNamePrefix": "[concat(parameters('prefix'),'-NIC-WEB')]",
         "vmNamePrefix": "[concat(parameters('prefix'),'-VM-WEB')]",
         "adminUsername": "azureuser",
@@ -71,7 +75,6 @@
         "vmStorageAccountContainerName": "vhds",
         "vnetID": "[resourceId(parameters('vNetResourceGroup'),'Microsoft.Network/virtualNetworks',parameters('vNETName'))]",
         "subnetRef": "[concat(variables('vnetID'),'/subnets/',parameters('subnetNameWEB'))]"
-
     },
     "resources": [
         {
@@ -91,11 +94,11 @@
             "type": "Microsoft.Compute/availabilitySets",
             "location": "[parameters('location')]",
             "apiVersion": "2015-06-15",
-            "dependsOn": [ ],
+            "dependsOn": [],
             "tags": {
                 "displayName": "WebAVSet"
             },
-            "properties": { }
+            "properties": {}
         },
         {
             "apiVersion": "2015-05-01-preview",
@@ -115,10 +118,7 @@
                             "subnet": {
                                 "id": "[variables('subnetRef')]"
                             }
-                          
-
                         }
-
                     }
                 ]
             }
@@ -180,7 +180,5 @@
                 }
             }
         }
-
-
     ]
-        }
+}

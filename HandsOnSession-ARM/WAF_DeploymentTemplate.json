@@ -4,7 +4,7 @@
     "parameters": {
         "location": {
             "type": "string",
-            "defaultValue": "West Europe",
+            "defaultValue": "West Europe",      
             "metadata": {
                 "description": "Location to deploy (e.g. West Europe)"
             }
@@ -88,7 +88,7 @@
         "nicNamePrefix": "[concat(parameters('prefix'),'-NIC-WAF')]",
         "vmNamePrefix": "[concat(parameters('prefix'),'-VM-WAF')]",
         "publicIPAddressName": "[concat(parameters('prefix'),'-LBIP-WAF')]",
-        "loadBalancerName": "[concat(parameters('prefix'),'-LB-NGF')]",
+        "loadBalancerName": "[concat(parameters('prefix'),'-LB-WAF')]",
         "adminUsername": "azureuser",
         "numberOfInstances": 1,
         "storageAccountType": "Standard_LRS",
@@ -125,10 +125,7 @@
                 "displayName": "wafPublicIPAddress"
             },
             "properties": {
-                "publicIPAllocationMethod": "[variables('publicIPAddressType')]",
-                "dnsSettings": {
-                    "domainNameLabel": "[parameters('dnsNameForWAF')]"
-                }
+                "publicIPAllocationMethod": "[variables('publicIPAddressType')]"
             }
         },
         {

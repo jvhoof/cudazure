@@ -105,11 +105,11 @@ $locations = ((Get-AzureRmResourceProvider -ProviderNamespace Microsoft.Compute)
 $location = "$(([Scriptblock]::Create((Create-Menu-Choice -start_text "Please select a datacenter" -array ($locations))).Invoke()))"
 
 $ng_password = Read-Host -AsSecureString "Please provide password for NG" 
-$prefix = Read-Host "Please provide an identifying prefix for all VM's being build. e.g WE-PROD would become WE-PROD-VM-NG" 
+$prefix = Read-Host "Please provide an identifying prefix for all VM's being build. e.g WeProd would become WeProd-VM-NGF (Max 19 char, no spaces, [A-Za-z0-9]" 
 
-$storageAccountNGF = "$prefix" + "storagengf" 
-$storageAccountWAF = "$prefix" + "storagewaf" 
-$storageAccountWEB = "$prefix" + "storageweb" 
+$storageAccountNGF = $prefix.ToLower() + "stngf" 
+$storageAccountWAF = $prefix.ToLower() + "stwaf" 
+$storageAccountWEB = $prefix.ToLower() + "stweb" 
 
 # VNET Configuration parameters
 $vNETName = "$prefix-vnet"
@@ -148,22 +148,20 @@ $imageSKU = "byol"
 ##############################################################################################################>
 
 # VNET and subnets Deployment
-
-New-AzureRMResourceGroup -Name $vnet_rg_name -Location "$($location)"
+New-AzureRMResourceGroup -Name $vnet_rg_name -Location "$location"
 
 New-AzureRMResourceGroupDeployment -Name "Deploy_$vnet_rg_name" -ResourceGroupName $vnet_rg_name `
-    -TemplateFile "VNET_DeploymentTemplate.json" -location $location `
+    -TemplateFile "VNET_DeploymentTemplate.json" -location "$location" `
     -vNETName "$vNETName" -vNETPrefix "$vNETPrefix" `
     -subnetNameNGF "$subnetNameNGF" -subnetPrefixNGF "$subnetPrefixNGF" `
     -subnetNameWAF "$subnetNameWAF" -subnetPrefixWAF "$subnetPrefixWAF" `
-    -subnetNameWEB "$subnetNameWEB" -subnetPrefixWEB "$subnetPrefixWEB" `
-
+    -subnetNameWEB "$subnetNameWEB" -subnetPrefixWEB "$subnetPrefixWEB" 
 
 # NextGen Firewall F-Series Deployment
 New-AzureRMResourceGroup -Name $ng_rg_name -Location $location
 
 New-AzureRMResourceGroupDeployment -Name "Deploy_Barracuda_NextGen" -ResourceGroupName $ng_rg_name `
-    -TemplateFile "NG_DeploymentTemplate.json" -location $location `
+    -TemplateFile "NG_DeploymentTemplate.json" -location "$location" `
     -adminPassword $ng_password -storageAccount "$storageAccountNGF" -dnsNameForNGF "$dnsNameForNGF" `
     -vNetResourceGroup "$vnet_rg_name" -prefix "$prefix" -vNETName "$vNETName" `
     -subnetNameNGF "$subnetNameNGF" -subnetPrefixNGF "$subnetPrefixNGF" `
@@ -173,7 +171,7 @@ New-AzureRMResourceGroupDeployment -Name "Deploy_Barracuda_NextGen" -ResourceGro
 New-AzureRMResourceGroup -Name $waf_rg_name -Location $location
 
 New-AzureRMResourceGroupDeployment -Name "Deploy_Barracuda_WAF" -ResourceGroupName $waf_rg_name `
-    -TemplateFile "WAF_DeploymentTemplate.json" -location $location `
+    -TemplateFile "WAF_DeploymentTemplate.json" -location "$location" `
     -adminPassword $ng_password -storageAccount "$storageAccountWAF" -dnsNameForWAF "$dnsNameForWAF" `
     -vNetResourceGroup "$vnet_rg_name" -prefix "$prefix" -vNETName "$vNETName" `
     -subnetNameWAF "$subnetNameWAF" -subnetPrefixWAF "$subnetPrefixWAF" `
@@ -182,10 +180,10 @@ New-AzureRMResourceGroupDeployment -Name "Deploy_Barracuda_WAF" -ResourceGroupNa
 #Web Server Resource
 New-AzureRMResourceGroup -Name $web_rg_name -Location $location
 New-AzureRMResourceGroupDeployment -Name "Deploy_Web_Servers" -ResourceGroupName $web_rg_name `
-    -TemplateFile "WEB_DeploymentTemplate.json" -location $location `
+    -TemplateFile "WEB_DeploymentTemplate.json" -location "$location" `
     -adminPassword $ng_password -storageAccount "$storageAccountWEB" `
     -vNetResourceGroup "$vnet_rg_name" -prefix "$prefix" -vNETName "$vNETName" `
-    -subnetNameWEB "$subnetNameWAF" -vmSize $vmSizeWEB
+    -subnetNameWEB "$subnetNameWEB" -vmSize $vmSizeWEB
 
 
 <##############################################################################################################
