@@ -81,7 +81,7 @@ Write-Host -ForegroundColor Red "Warning, cannot find the AzureRM Module"
 
 if(!$azure_creds){$azure_creds = Get-Credential}
 
-Add-AzureRMAccount -Credential $azure_creds 
+Login-AzureRMAccount -Credential $azure_creds 
 
 $subscriptionid = ([Scriptblock]::Create((Create-Menu-Choice -start_text "Please select a subscription" -array (Get-AzureRMSubscription) -valuecolumnname "SubscriptionId" -textcolumnname "SubscriptionName" )).Invoke())
 
@@ -112,7 +112,7 @@ $storageAccountWAF = $prefix.ToLower() + "stwaf"
 $storageAccountWEB = $prefix.ToLower() + "stweb" 
 
 # VNET Configuration parameters
-$vNETName = "$prefix-vnet"
+$vNETName = "$prefix-VNET"
 $vNETPrefix = "172.16.136.0/22"
 
 # Subnet Configuration parameters
@@ -166,7 +166,7 @@ New-AzureRMResourceGroupDeployment -Name "Deploy_Barracuda_NextGen" -ResourceGro
     -vNetResourceGroup "$vnet_rg_name" -prefix "$prefix" -vNETName "$vNETName" `
     -subnetNameNGF "$subnetNameNGF" -subnetPrefixNGF "$subnetPrefixNGF" `
     -vmSize $vmSizeNGF -imageSKU $imageSKU
-
+<#
 # Web Application Firewall - WAF Deployment
 New-AzureRMResourceGroup -Name $waf_rg_name -Location $location
 
@@ -183,7 +183,7 @@ New-AzureRMResourceGroupDeployment -Name "Deploy_Web_Servers" -ResourceGroupName
     -TemplateFile "WEB_DeploymentTemplate.json" -location "$location" `
     -adminPassword $ng_password -storageAccount "$storageAccountWEB" `
     -vNetResourceGroup "$vnet_rg_name" -prefix "$prefix" -vNETName "$vNETName" `
-    -subnetNameWEB "$subnetNameWEB" -vmSize $vmSizeWEB
+    -subnetNameWEB "$subnetNameWAF" -vmSize $vmSizeWEB
 
 
 <##############################################################################################################
