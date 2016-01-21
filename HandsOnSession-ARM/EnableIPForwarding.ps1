@@ -1,3 +1,3 @@
-﻿$nicfw = Get-AzureRmNetworkInterface -ResourceGroupName jvh14-RG-NGF -Name jvh14-vm-ngf575
-$nicfw.EnableIPForwarding = 1
+﻿$nicfw = Get-AzureRmNetworkInterface -ResourceGroupName jvh3rg-ng -Name jvh3win729
+$nicfw.EnableIPForwarding = 0
 Set-AzureRmNetworkInterface -NetworkInterface $nicfw

@@ -116,11 +116,11 @@ $vNETName = "$prefix-VNET"
 $vNETPrefix = "172.16.136.0/22"
 
 # Subnet Configuration parameters
-$subnetNameNGF = "$prefix-subnet-ngf"
+$subnetNameNGF = "$prefix-SUBNET-NGF"
 $subnetPrefixNGF = "172.16.136.0/24"
-$subnetNameWAF = "$prefix-subnet-waf"
+$subnetNameWAF = "$prefix-SUBNET-WAF"
 $subnetPrefixWAF = "172.16.137.0/24"
-$subnetNameWEB = "$prefix-subnet-web"
+$subnetNameWEB = "$prefix-SUBNET-WEB"
 $subnetPrefixWEB = "172.16.138.0/24"
 
 # Resource Groups parameters

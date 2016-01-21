@@ -294,14 +294,17 @@
             "apiVersion": "2015-06-15",
             "type": "Microsoft.Compute/virtualMachines",
             "name": "[concat(variables('vmNamePrefix'), copyindex())]",
+            "location": "[parameters('location')]",
             "copy": {
                 "name": "virtualMachineLoop",
                 "count": "[variables('numberOfInstances')]"
             },
-            "location": "[parameters('location')]",
+            "tags": {
+                "displayName": "NG"
+            },
             "plan": {
                 "name": "[parameters('imageSKU')]",
-                "Product": "[variables('imagePublisher')]",
+                "Product": "[variables('imageOffer')]",
                 "Publisher": "[variables('imagePublisher')]"
             },
             "dependsOn": [
@@ -313,8 +316,24 @@
                 "availabilitySet": {
                     "id": "[resourceId('Microsoft.Compute/availabilitySets',variables('NextGenFirewallAvailabilitySet'))]"
                 },
+                "diagnosticsProfile": {
+                    "bootDiagnostics": {
+                        "enabled": "true",
+                        "storageUri": "[concat('http://',parameters('storageAccountName'),'.blob.core.windows.net')]"
+                    }
+                },
                 "hardwareProfile": {
                     "vmSize": "[parameters('vmSize')]"
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "properties": {
+                                "primary": true
+                            },
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces',concat(variables('nicNamePrefix'),copyindex()))]"
+                        }
+                    ]
                 },
                 "osProfile": {
                     "computerName": "[concat(variables('vmNamePrefix'), copyIndex())]",
@@ -335,19 +354,6 @@
                         },
                         "caching": "ReadWrite",
                         "createOption": "FromImage"
-                    }
-                },
-                "networkProfile": {
-                    "networkInterfaces": [
-                        {
-                            "id": "[resourceId('Microsoft.Network/networkInterfaces',concat(variables('nicNamePrefix'),copyindex()))]"
-                        }
-                    ]
-                },
-                "diagnosticsProfile": {
-                    "bootDiagnostics": {
-                        "enabled": "true",
-                        "storageUri": "[concat('http://',parameters('storageAccountName'),'.blob.core.windows.net')]"
                     }
                 }
             }
