@@ -166,7 +166,7 @@ New-AzureRMResourceGroupDeployment -Name "Deploy_Barracuda_NextGen" -ResourceGro
     -vNetResourceGroup "$vnet_rg_name" -prefix "$prefix" -vNETName "$vNETName" `
     -subnetNameNGF "$subnetNameNGF" -subnetPrefixNGF "$subnetPrefixNGF" `
     -vmSize $vmSizeNGF -imageSKU $imageSKU
-<#
+
 # Web Application Firewall - WAF Deployment
 New-AzureRMResourceGroup -Name $waf_rg_name -Location $location
 
