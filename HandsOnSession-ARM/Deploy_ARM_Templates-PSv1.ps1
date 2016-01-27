@@ -104,7 +104,7 @@ break;
 $locations = ((Get-AzureRmResourceProvider -ProviderNamespace Microsoft.Compute).ResourceTypes | Where-Object -FilterScript {$_.ResourceTypeName -eq 'virtualMachines'}).Locations
 $location = "$(([Scriptblock]::Create((Create-Menu-Choice -start_text "Please select a datacenter" -array ($locations))).Invoke()))"
 
-$ng_password = Read-Host -AsSecureString "Please provide password for NG" 
+$passwordVM = Read-Host -AsSecureString "Please provide password for NGF and Web Server" 
 $prefix = Read-Host "Please provide an identifying prefix for all VM's being build. e.g WeProd would become WeProd-VM-NGF (Max 19 char, no spaces, [A-Za-z0-9]" 
 
 $storageAccountNGF = $prefix.ToLower() + "stngf" 
@@ -124,10 +124,13 @@ $subnetNameWEB = "$prefix-SUBNET-WEB"
 $subnetPrefixWEB = "172.16.138.0/24"
 
 # Resource Groups parameters
-$ng_rg_name = "$prefix-RG-NGF"
-$waf_rg_name = "$prefix-RG-WAF"
-$web_rg_name = "$prefix-RG-WEB"
-$vnet_rg_name = "$prefix-RG-VNET" 
+$ngRGName = "$prefix-RG-NGF"
+$wafRGName = "$prefix-RG-WAF"
+$webRGName = "$prefix-RG-WEB"
+$vnetRGName = "$prefix-RG-VNET" 
+
+# Private IP for NextGen Firewall F
+$pipAddressNGF = "172.16.136.4"
 
 # Public DNS parameters for WAF and NGF
 # match ^[a-z][a-z0-9-]{1,61}[a-z0-9]$ - no caps
@@ -142,15 +145,25 @@ $vmSizeWEB = "Standard_A1"
 # SKU BYOL or Hourly license type
 $imageSKU = "byol"
 
+# Address prefix for all traffic towards internet
+$vnetRTPrefixInternet = "0.0.0.0/0"
+$vnetRTTableNameWAF = "$prefix-RT-WAF"
+$vnetRTNameWAF1 = "$prefix-Route-To-WEB"
+$vnetRTTableNameWEB = "$prefix-RT-WEB"
+$vnetRTNameWEB1 = "$prefix-Route-To-WAF"
+$vnetRTNameWEB2 = "$prefix-Route-To-Internet"
+
 <##############################################################################################################
 # The below section will deploy the VNET, NG and NSG's uncomment it if you want to build them using the templates provided.
 # Comment the whole section below between these comments to just use the UDR's
 ##############################################################################################################>
 
 # VNET and subnets Deployment
-New-AzureRMResourceGroup -Name $vnet_rg_name -Location "$location"
+Write-Host "Creating Resource Group $vnetRGName for the networking configuration"
+New-AzureRMResourceGroup -Name $vnetRGName -Location "$location"
 
-New-AzureRMResourceGroupDeployment -Name "Deploy_$vnet_rg_name" -ResourceGroupName $vnet_rg_name `
+Write-Host "Deploying VNET configuration"
+New-AzureRMResourceGroupDeployment -Name "Deploy_$vnetRGName" -ResourceGroupName $vnetRGName `
     -TemplateFile "VNET_DeploymentTemplate.json" -location "$location" `
     -vNETName "$vNETName" -vNETPrefix "$vNETPrefix" `
     -subnetNameNGF "$subnetNameNGF" -subnetPrefixNGF "$subnetPrefixNGF" `
@@ -158,41 +171,54 @@ New-AzureRMResourceGroupDeployment -Name "Deploy_$vnet_rg_name" -ResourceGroupNa
     -subnetNameWEB "$subnetNameWEB" -subnetPrefixWEB "$subnetPrefixWEB" 
 
 # NextGen Firewall F-Series Deployment
-New-AzureRMResourceGroup -Name $ng_rg_name -Location $location
+Write-Host "Creating Resource Group $ngRGName for the Barracuda NextGen Firewall F"
+New-AzureRMResourceGroup -Name $ngRGName -Location $location
 
-New-AzureRMResourceGroupDeployment -Name "Deploy_Barracuda_NextGen" -ResourceGroupName $ng_rg_name `
+Write-Host "Deploying Barracuda NextGen Firewall F Series"
+New-AzureRMResourceGroupDeployment -Name "Deploy_Barracuda_NextGen" -ResourceGroupName $ngRGName `
     -TemplateFile "NG_DeploymentTemplate.json" -location "$location" `
-    -adminPassword $ng_password -storageAccount "$storageAccountNGF" -dnsNameForNGF "$dnsNameForNGF" `
-    -vNetResourceGroup "$vnet_rg_name" -prefix "$prefix" -vNETName "$vNETName" `
+    -adminPassword $passwordVM -storageAccount "$storageAccountNGF" -dnsNameForNGF "$dnsNameForNGF" `
+    -vNetResourceGroup "$vnetRGName" -prefix "$prefix" -vNETName "$vNETName" `
     -subnetNameNGF "$subnetNameNGF" -subnetPrefixNGF "$subnetPrefixNGF" `
     -vmSize $vmSizeNGF -imageSKU $imageSKU
 
 # Web Application Firewall - WAF Deployment
-New-AzureRMResourceGroup -Name $waf_rg_name -Location $location
+Write-Host "Creating Resource Group $wafRGName for the Barracuda Web Application Firewall"
+New-AzureRMResourceGroup -Name $wafRGName -Location $location
 
-New-AzureRMResourceGroupDeployment -Name "Deploy_Barracuda_WAF" -ResourceGroupName $waf_rg_name `
+Write-Host "Deploying Barracuda Web Application Firewall"
+New-AzureRMResourceGroupDeployment -Name "Deploy_Barracuda_WAF" -ResourceGroupName $wafRGName `
     -TemplateFile "WAF_DeploymentTemplate.json" -location "$location" `
-    -adminPassword $ng_password -storageAccount "$storageAccountWAF" -dnsNameForWAF "$dnsNameForWAF" `
-    -vNetResourceGroup "$vnet_rg_name" -prefix "$prefix" -vNETName "$vNETName" `
+    -adminPassword $passwordVM -storageAccount "$storageAccountWAF" -dnsNameForWAF "$dnsNameForWAF" `
+    -vNetResourceGroup "$vnetRGName" -prefix "$prefix" -vNETName "$vNETName" `
     -subnetNameWAF "$subnetNameWAF" -subnetPrefixWAF "$subnetPrefixWAF" `
     -vmSize $vmSizeWAF -imageSKU $imageSKU
 
 #Web Server Resource
-New-AzureRMResourceGroup -Name $web_rg_name -Location $location
-New-AzureRMResourceGroupDeployment -Name "Deploy_Web_Servers" -ResourceGroupName $web_rg_name `
+Write-Host "Creating Resource Group $webRGName for the Web Server"
+New-AzureRMResourceGroup -Name $webRGName -Location $location
+
+Write-Host "Deploying the Web Server"
+New-AzureRMResourceGroupDeployment -Name "Deploy_Web_Servers" -ResourceGroupName $webRGName `
     -TemplateFile "WEB_DeploymentTemplate.json" -location "$location" `
-    -adminPassword $ng_password -storageAccount "$storageAccountWEB" `
-    -vNetResourceGroup "$vnet_rg_name" -prefix "$prefix" -vNETName "$vNETName" `
+    -adminPassword $passwordVM -storageAccount "$storageAccountWEB" `
+    -vNetResourceGroup "$vnetRGName" -prefix "$prefix" -vNETName "$vNETName" `
     -subnetNameWEB "$subnetNameWAF" -vmSize $vmSizeWEB
 
-
 <##############################################################################################################
-End of the section that deploys the VNET and NG's
+End of the section that deploys the VNET, NGF, WAF and Web Server
 ##############################################################################################################>
 
-#Enable IPForwarding for all the NG's, this doesn't work via the templates as it defaults to false regardless of the setting in the json
+<##############################################################################################################
+#
+# IP FORWARDING
+#
+# Enable IPForwarding for all the NG's, this doesn't work via the templates as it defaults 
+# to false regardless of the setting in the json
+#
+##############################################################################################################>
 
-$ng_vms = (Get-AzureRMVM -ResourceGroupName $ng_rg_name | Where-Object -FilterScript {$_.Plan.Product -eq "barracuda-ng-firewall"})
+$ng_vms = (Get-AzureRMVM -ResourceGroupName $ngRGName | Where-Object -FilterScript {$_.Plan.Product -eq "barracuda-ng-firewall"})
 
 ForEach($ng in $ng_vms){ 
     $i++
@@ -200,7 +226,7 @@ ForEach($ng in $ng_vms){
     $nic_name = $ng.NetworkInterfaceIDs.Split("/")[($ng).NetworkInterfaceIDs.Split("/").Count-1]
 
     #Get the NIC Configuration, this presumes the NIC is in the same Resource Group as it's NG.
-    $nic = Get-AzureRMNetworkInterface -ResourceGroupName $ng_rg_name -Name $nic_name
+    $nic = Get-AzureRMNetworkInterface -ResourceGroupName $ngRGName -Name $nic_name
     $nic.EnableIPForwarding = "true"
     #Apply the changed configuration against the NIC
     Set-AzureRMNetworkInterface -NetworkInterface $nic 
@@ -211,3 +237,83 @@ ForEach($ng in $ng_vms){
     Write-Host "NG IP: $($nic.IpConfigurations.PrivateIPAddress)"
     Write-Host "NG IP: $($nic.EnableIPForwarding)"
 }
+
+<##############################################################################################################
+#
+# USER DEFINED ROUTING (UDR)
+#
+# Enable routing on the Azure platform. Routing is applied to the packets outgoing of a subnet  
+# Foward and reverse routing need to be provided.
+# Beware that there are implicit routes for all internal subnets. The default route 0.0.0.0/0 added using 
+# UDR is for all route except for the implicit routes. To activate routing between subnets via the NGF these 
+# routes need to be overwritten with UDR VirtualAppliance routes instead of the VNETLocal routes.
+#
+##############################################################################################################>
+
+Write-Host "Updating the Resource Group $vnetRGName for the routing configuration"
+New-AzureRMResourceGroup -Name $vnetRGName -Location $location
+
+Write-Host "Deploying the UDR Routing for WEB Subnet"
+#Now create the route table from the route configuration 
+Write-Host "Test: $vnetRTTableNameWEB - $vnetRGName - $location"
+$routeTableWeb = New-AzureRMRouteTable -Name $vnetRTTableNameWEB -ResourceGroupName $vnetRGName -Location $location
+
+# Route from WEB Subnet to WAF Subnet
+$routeTableWeb | Add-AzureRmRouteConfig `
+        -Name $vnetRTNameWEB1 `
+        -AddressPrefix $subnetPrefixWAF `
+        -NextHopType VirtualAppliance `
+        -NextHopIpAddress $pipAddressNGF
+
+$routeTableWeb | Add-AzureRmRouteConfig `
+        -Name $vnetRTNameWEB2 `
+        -AddressPrefix $vnetRTPrefixInternet `
+        -NextHopType VirtualAppliance `
+        -NextHopIpAddress $pipAddressNGF
+
+#Now Set the route in Azure.
+Set-AzurermRouteTable -RouteTable $routeTableWeb 
+
+#This next section associates the VNET and Subnet with the route
+
+#Get your VVNET 
+$vnet = Get-AzureRMVirtualNetwork -ResourceGroupName $vnetRGName
+
+#Use the below command to apply the route table to the subnet config in the vnet
+$newsubnetconfig = Set-AzureRMVirtualNetworkSubnetConfig -RouteTable $routeTableWeb `
+                        -VirtualNetwork $vnet `
+                        -Name $subnetNameWEB `
+                        -AddressPrefix $subnetPrefixWEB
+ 
+#Now apply the change into Azure. 
+Set-AzureRMVirtualNetwork -VirtualNetwork $vnet
+
+Write-Host "Deploying the UDR Routing for WAF Subnet"
+#Now create the route table from the route configuration 
+$routeTableWAF = New-AzureRMRouteTable -Name $vnetRTTableNameWAF -ResourceGroupName $vnetRGName -Location $location
+
+# Route from WEB Subnet to WAF Subnet
+$routeTableWAF | Add-AzureRmRouteConfig `
+        -Name $vnetRTNameWAF1 `
+        -AddressPrefix $subnetPrefixWEB `
+        -NextHopType VirtualAppliance `
+        -NextHopIpAddress $pipAddressNGF
+
+#Now Set the route in Azure.
+Set-AzurermRouteTable -RouteTable $routeTableWAF
+
+#This next section associates the VNET and Subnet with the route
+
+#Get your VVNET 
+$vnet = Get-AzureRMVirtualNetwork -ResourceGroupName $vnetRGName
+
+#Use the below command to apply the route table to the subnet config in the vnet
+$newsubnetconfig = Set-AzureRMVirtualNetworkSubnetConfig -RouteTable $routeTableWAF `
+                        -VirtualNetwork $vnet `
+                        -Name $subnetNameWAF `
+                        -AddressPrefix $subnetPrefixWAF
+ 
+#Now apply the change into Azure. 
+Set-AzureRMVirtualNetwork -VirtualNetwork $vnet
+
+Write-Host "Script Finished. Please now configure the devices."

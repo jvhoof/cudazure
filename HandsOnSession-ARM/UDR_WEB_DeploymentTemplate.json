@@ -1,0 +1,140 @@
+﻿{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "location": {
+            "type": "string",
+            "defaultValue": "West Europe", 
+            "metadata": {
+                "description": "Location to deploy (e.g. West Europe)"
+            }
+        },
+        "routeTableName": {
+            "type": "string",
+            "metadata": {
+                "description": "Unique name for the route"
+            }
+        },
+        "routeName": {
+            "type": "string",
+            "metadata": {
+                "description": "Unique name for the route"
+            }
+        },
+        "destinationNet": {
+            "type": "string",
+            "metadata": {
+                "description": "CIDR of the subnet the route should apply for"
+            }
+        },
+        "gatewayIP": {
+            "type": "string",
+            "metadata": {
+                "description": "CIDR of the subnet the route should apply for"
+            }
+        },
+        "subnetName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the subnet the route will be applied against"
+            }
+        },
+        "vNETName": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the vNET the route will be applied against"
+            }
+        },
+        "vNetResourceGroup": {
+            "type": "string"
+        }
+        
+        "vNETName": { 
+            "type": "string", 
+            "metadata": {
+                "description": "Name of the VNET (e.g. cuda-vnet)"
+            }
+        },
+        "vNetResourceGroup": {
+            "type": "string",
+            "metadata": {
+                "description": "Resource Group for the VNET"
+            }
+        },        
+        "vNETPrefix": {
+            "type": "string",
+            "metadata": {
+                "description": "Network range of the VNET (e.g. 172.16.136.0/22)"
+            }
+        },
+        "subnetNameNGF": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the Subnet containing the NextGen Firewall (e.g. cuda-subnet-ngf)"
+            }
+        },
+        "subnetPrefixNGF": {
+            "type": "string",
+            "metadata": {
+                "description": "Network range of the Subnet containing the Web Application Firewall (e.g. 172.16.136.0/24)"
+            }
+        },
+        "subnetNameWAF": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the Subnet containing the Web Application Firewall (e.g. cuda-subnet-waf)"
+            }
+        },
+        "subnetPrefixWAF": {
+            "type": "string",
+            "metadata": {
+                "description": "Network range of the Subnet containing the Web Application Firewall (e.g. 172.16.137.0/24)"
+            }
+        },
+        "subnetNameWEB": {
+            "type": "string",
+            "metadata": {
+                "description": "Name of the Subnet containing the Web Application (e.g. cuda-subnet-web)"
+            }
+        },
+        "subnetPrefixWEB": {
+            "type": "string",
+            "metadata": {
+                "description": "Network range of the Subnet containing the Web Application (e.g. 172.16.138.0/24)"
+            }
+        }
+
+    },
+    "variables": {
+        "nextHopType": "VirtualAppliance",
+        "vnetID": "[resourceId(parameters('vNetResourceGroup'),'Microsoft.Network/virtualNetworks',parameters('vNETName'))]",
+        "subnetRef": "[concat(variables('vnetID'),'/subnets/',parameters('subnetName'))]"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Network/routeTables",
+            "name": "[parameters('routeTableName')]",
+            "apiVersion": "2015-05-01-preview",
+            "location": "[parameters('location')]",
+            "tags": {
+                "displayName": "Route"
+            },
+            "properties": {
+                "routes": [
+                    {
+                        "name": "[parameters('routeName')]",
+                        "AddressPrefix": "[parameters('destinationNet')]",
+                        "nextHopType": "[variables('nextHopType')]",
+                        "nextHopIPAddress": "[parameters('gatewayIP')]"
+                    }
+                ],
+                "subnets": [
+                    {
+                        "id": "[variables('subnetRef')]"
+                    }
+                ]
+            }
+        }
+    ],
+    "outputs": {}
+}
