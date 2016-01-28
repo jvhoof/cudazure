@@ -7,8 +7,6 @@ The script
 .PARAMETERS
 The script will promPts for the parameters it needs
 .EXAMPLES
-
-
 #>
 
 
@@ -179,9 +177,9 @@ New-AzureRMResourceGroupDeployment -Verbose -Debug -Name "Deploy_Barracuda_NextG
     -TemplateFile "NG_DeploymentTemplate.json" -location "$location" `
     -adminPassword $passwordVM -storageAccount "$storageAccountNGF" -dnsNameForNGF "$dnsNameForNGF" `
     -vNetResourceGroup "$vnetRGName" -prefix "$prefix" -vNETName "$vNETName" `
-    -subnetNameNGF "$subnetNameNGF" -subnetPrefixNGF "$subnetPrefixNGF" `
+    -subnetNameNGF "$subnetNameNGF" -subnetPrefixNGF "$subnetPrefixNGF" -pipAddressNGF "$pipAddressNGF" `
     -subnetGatewayIP "$subnetGatewayIP" -vmSize "$vmSizeNGF" -imageSKU "$imageSKU"
-<#
+
 # Web Application Firewall - WAF Deployment
 Write-Host "Creating Resource Group $wafRGName for the Barracuda Web Application Firewall"
 New-AzureRMResourceGroup -Name $wafRGName -Location $location
@@ -217,7 +215,7 @@ End of the section that deploys the VNET, NGF, WAF and Web Server
 # to false regardless of the setting in the json
 #
 ##############################################################################################################>
-<#
+
 $ng_vms = (Get-AzureRMVM -ResourceGroupName $ngRGName | Where-Object -FilterScript {$_.Plan.Product -eq "barracuda-ng-firewall"})
 
 ForEach($ng in $ng_vms){ 
@@ -249,7 +247,7 @@ ForEach($ng in $ng_vms){
 # routes need to be overwritten with UDR VirtualAppliance routes instead of the VNETLocal routes.
 #
 ##############################################################################################################>
-<#
+
 Write-Host "Updating the Resource Group $vnetRGName for the routing configuration"
 New-AzureRMResourceGroup -Name $vnetRGName -Location $location
 
@@ -315,5 +313,5 @@ $newsubnetconfig = Set-AzureRMVirtualNetworkSubnetConfig -RouteTable $routeTable
  
 #Now apply the change into Azure. 
 Set-AzureRMVirtualNetwork -VirtualNetwork $vnet
-#>
+
 Write-Host "Script Finished. Please now configure the devices."

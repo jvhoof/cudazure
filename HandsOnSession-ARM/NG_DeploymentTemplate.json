@@ -36,7 +36,7 @@
         "prefix": {
             "type": "string",
             "metadata": {
-                "description": "identifying prefix for all VM's being build. e.g WE-PROD would become WE-PROD-VM-NG"
+                "description": "identifying prefix for all VM's being build. e.g WeProd would become WeProd-VM-NGF (Max 19 char, no spaces, [A-Za-z0-9]"
             }
         },
         "vNETName": {
@@ -55,6 +55,12 @@
             "type": "string",
             "metadata": {
                 "description": "Network range of the Subnet containing the NextGen Firewall (e.g. 172.16.136.0/24)"
+            }
+        },
+        "pipAddressNGF" : {
+            "type": "string",
+            "metadata": {
+                "description": "The IP address of the NextGen Firewall that will be staticly assigned via DHCP"
             }
         },
         "subnetGatewayIP": {
@@ -110,17 +116,7 @@
         "NGPIPID": "[resourceId('Microsoft.Network/publicIPAddresses',variables('nicNamePrefix'))]",
         "frontEndIPConfigID": "[concat(variables('lbID'),'/frontendIPConfigurations/loadBalancerFrontend')]",
         "lbPoolID": "[concat(variables('lbID'),'/backendAddressPools/loadBalancerBackend')]",
-        "lbProbeID": "[concat(variables('lbID'),'/probes/tcpProbe')]",
-        "subnetSplit": "[split(parameters('subnetPrefixNGF'),'.')]",
-        "4thOctet": "[split(variables('subnetSplit')[3],'/')]",
-        "InternalIPs": [
-            "[concat(variables('subnetSplit')[0],'.',variables('subnetSplit')[1],'.',variables('subnetSplit')[2],'.',string(add(int(variables('4thOctet')[0]),4)))]",
-            "[concat(variables('subnetSplit')[0],'.',variables('subnetSplit')[1],'.',variables('subnetSplit')[2],'.',string(add(int(variables('4thOctet')[0]),5)))]"
-        ],
-        "CustomData": [
-        "[base64(concat('{\"version\" : \"1.0\", \"dha\" : { \"flags\" : [\"primary\"], \"ip\" : \"', variables('InternalIPs')[0], '\", \"haip\" : \"', variables('InternalIPs')[1], '\", \"gateway\" : \"', parameters('subnetGatewayIP'), '\", \"password\" : \"', parameters('adminPassword'), '\" }}')",
-        "[base64(concat('{\"version\" : \"1.0\", \"dha\" : { \"haip\" : \"', variables('InternalIPs')[1], '\", \"gateway\" : \"', parameters('subnetGatewayIP'), '\", \"password\" : \"', parameters('adminPassword'), '\" }}'))]"
-        ]        
+        "lbProbeID": "[concat(variables('lbID'),'/probes/tcpProbe')]"
     },
     "resources": [
         {
@@ -190,7 +186,7 @@
                         "name": "ipconfig1",
                         "properties": {
                             "privateIPAllocationMethod": "Static",
-                            "privateIPAddress": "[variables('InternalIPs')[copyIndex()]]",
+                            "privateIPAddress": "[parameters('pipAddressNGF')]",
                             "publicIPAddress": {
                                 "id": "[resourceId('Microsoft.Network/publicIPAddresses/', concat(variables('nicNamePrefix'), copyindex()))]"
                             },
@@ -356,8 +352,7 @@
                 "osProfile": {
                     "computerName": "[concat(variables('vmNamePrefix'), copyIndex())]",
                     "adminUsername": "[variables('adminUsername')]",
-                    "adminPassword": "[parameters('adminPassword')]",
-                    "customData": "[variables('CustomData')[copyIndex()]]"
+                    "adminPassword": "[parameters('adminPassword')]"
                 },
                 "storageProfile": {
                     "imageReference": {
