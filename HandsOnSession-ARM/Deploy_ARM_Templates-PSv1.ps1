@@ -75,7 +75,6 @@ $azurerm_version = (Get-Module -Name AzureRM).Version
 Write-Host -ForegroundColor Red "Warning, cannot find the AzureRM Module"
 }
 
-
 #Authenticate into Azure
 #This section prompts for credentials and the selection to use
 
@@ -129,7 +128,8 @@ $wafRGName = "$prefix-RG-WAF"
 $webRGName = "$prefix-RG-WEB"
 $vnetRGName = "$prefix-RG-VNET" 
 
-# Private IP for NextGen Firewall F
+# Microsoft Azure Default Gateway for the NGF Subnet
+$subnetGatewayIP = "172.16.136.1"
 $pipAddressNGF = "172.16.136.4"
 
 # Public DNS parameters for WAF and NGF
@@ -175,13 +175,13 @@ Write-Host "Creating Resource Group $ngRGName for the Barracuda NextGen Firewall
 New-AzureRMResourceGroup -Name $ngRGName -Location $location
 
 Write-Host "Deploying Barracuda NextGen Firewall F Series"
-New-AzureRMResourceGroupDeployment -Name "Deploy_Barracuda_NextGen" -ResourceGroupName $ngRGName `
+New-AzureRMResourceGroupDeployment -Verbose -Debug -Name "Deploy_Barracuda_NextGen" -ResourceGroupName $ngRGName `
     -TemplateFile "NG_DeploymentTemplate.json" -location "$location" `
     -adminPassword $passwordVM -storageAccount "$storageAccountNGF" -dnsNameForNGF "$dnsNameForNGF" `
     -vNetResourceGroup "$vnetRGName" -prefix "$prefix" -vNETName "$vNETName" `
     -subnetNameNGF "$subnetNameNGF" -subnetPrefixNGF "$subnetPrefixNGF" `
-    -vmSize $vmSizeNGF -imageSKU $imageSKU
-
+    -subnetGatewayIP "$subnetGatewayIP" -vmSize "$vmSizeNGF" -imageSKU "$imageSKU"
+<#
 # Web Application Firewall - WAF Deployment
 Write-Host "Creating Resource Group $wafRGName for the Barracuda Web Application Firewall"
 New-AzureRMResourceGroup -Name $wafRGName -Location $location
@@ -217,7 +217,7 @@ End of the section that deploys the VNET, NGF, WAF and Web Server
 # to false regardless of the setting in the json
 #
 ##############################################################################################################>
-
+<#
 $ng_vms = (Get-AzureRMVM -ResourceGroupName $ngRGName | Where-Object -FilterScript {$_.Plan.Product -eq "barracuda-ng-firewall"})
 
 ForEach($ng in $ng_vms){ 
@@ -249,7 +249,7 @@ ForEach($ng in $ng_vms){
 # routes need to be overwritten with UDR VirtualAppliance routes instead of the VNETLocal routes.
 #
 ##############################################################################################################>
-
+<#
 Write-Host "Updating the Resource Group $vnetRGName for the routing configuration"
 New-AzureRMResourceGroup -Name $vnetRGName -Location $location
 
@@ -315,5 +315,5 @@ $newsubnetconfig = Set-AzureRMVirtualNetworkSubnetConfig -RouteTable $routeTable
  
 #Now apply the change into Azure. 
 Set-AzureRMVirtualNetwork -VirtualNetwork $vnet
-
+#>
 Write-Host "Script Finished. Please now configure the devices."
