@@ -201,7 +201,7 @@ New-AzureRMResourceGroupDeployment -Name "Deploy_Web_Servers" -ResourceGroupName
     -TemplateFile "WEB_DeploymentTemplate.json" -location "$location" `
     -adminPassword $passwordVM -storageAccount "$storageAccountWEB" `
     -vNetResourceGroup "$vnetRGName" -prefix "$prefix" -vNETName "$vNETName" `
-    -subnetNameWEB "$subnetNameWAF" -vmSize $vmSizeWEB
+    -subnetNameWEB "$subnetNameWEB" -vmSize $vmSizeWEB
 
 <##############################################################################################################
 End of the section that deploys the VNET, NGF, WAF and Web Server
