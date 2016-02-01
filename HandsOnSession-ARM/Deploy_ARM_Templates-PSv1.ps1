@@ -173,7 +173,7 @@ Write-Host "Creating Resource Group $ngRGName for the Barracuda NextGen Firewall
 New-AzureRMResourceGroup -Name $ngRGName -Location $location
 
 Write-Host "Deploying Barracuda NextGen Firewall F Series"
-New-AzureRMResourceGroupDeployment -Verbose -Debug -Name "Deploy_Barracuda_NextGen" -ResourceGroupName $ngRGName `
+New-AzureRMResourceGroupDeployment -Name "Deploy_Barracuda_NextGen" -ResourceGroupName $ngRGName `
     -TemplateFile "NG_DeploymentTemplate.json" -location "$location" `
     -adminPassword $passwordVM -storageAccount "$storageAccountNGF" -dnsNameForNGF "$dnsNameForNGF" `
     -vNetResourceGroup "$vnetRGName" -prefix "$prefix" -vNETName "$vNETName" `
