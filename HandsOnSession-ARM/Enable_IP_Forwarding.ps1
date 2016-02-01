@@ -1,8 +1,9 @@
 ﻿<#
 .SYNOPSIS
 NOTE ONLY FOR Azure Powershell 1.0 preview and beyond as it used the new AzureRM Module.
+This script will perform deployments of Azure resource groups to create a default deployment of VNET, NG's, WAF's and a pair of servers.
 .DESCRIPTION
-This script will delete the deployment of the NGF, WAF, WEB and networking. 
+This script will enable fowarding on the Barracuda NextGen Firewall F series deployed. This will be set on the Interface of the NGF. 
 .PARAMETERS
 The script will promPts for the parameters it needs
 .EXAMPLES
@@ -28,7 +29,6 @@ $array,
 [string]$valuecolumnname,
 [string]$textcolumnname
 )
-
 
     $id = 0
     $text = $start_text + "`r`n"
@@ -76,57 +76,23 @@ Write-Host -ForegroundColor Red "Warning, cannot find the AzureRM Module"
 #This section prompts for credentials and the selection to use
 
 if(!$azure_creds){$azure_creds = Get-Credential}
-
 Login-AzureRMAccount -Credential $azure_creds 
 
 $subscriptionid = ([Scriptblock]::Create((Create-Menu-Choice -start_text "Please select a subscription" -array (Get-AzureRMSubscription) -valuecolumnname "SubscriptionId" -textcolumnname "SubscriptionName" )).Invoke())
-
 Select-AzureRMSubscription -SubscriptionId "$($subscriptionid)"
 
 if((Get-AzureRMSubscription).SubscriptionId -eq $subscriptionid){
-Write-Host "Now working in: $((Get-AzureRMSubscription).SubscriptionName)";
+    Write-Host "Now working in: $((Get-AzureRMSubscription).SubscriptionName)";
 }else{
-
-Write-Host "Unable to select the desired subscription";
-break;
+    Write-Host "Unable to select the desired subscription";
+    break;
 }
 
 $prefix = Read-Host "Please provide an identifying prefix for all VM's being build. e.g WeProd would become WeProd-VM-NGF (Max 19 char, no spaces, [A-Za-z0-9]" 
 
-# Resource Groups parameters
 $ngRGName = "$prefix-RG-NGF"
-$wafRGName = "$prefix-RG-WAF"
-$webRGName = "$prefix-RG-WEB"
-$vnetRGName = "$prefix-RG-VNET" 
+$ngInterfaceName = "$prefix-NIC-NGF0"
 
-Write-Host Deleting Resource Group - $ngRGName
-$input = Read-Host 'Do you want to delete it [Y/N] ?'
-if ($input.ToUpper().Equals("Y"))
-{
-    Remove-AzureRmResourceGroup -Name $ngRGName -Force -Verbose
-    Write-Host Deleted Resource Group - $ngRGName
-}
-
-Write-Host Deleting Resource Group - $wafRGName
-$input = Read-Host 'Do you want to delete it [Y/N] ?'
-if ($input.ToUpper().Equals("Y"))
-{
-    Remove-AzureRmResourceGroup -Name $wafRGName -Force -Verbose
-    Write-Host Deleted Resource Group - $wafRGName
-}
-
-Write-Host Deleting Resource Group - $webRGName
-$input = Read-Host 'Do you want to delete it [Y/N] ?'
-if ($input.ToUpper().Equals("Y"))
-{
-    Remove-AzureRmResourceGroup -Name $webRGName -Force -Verbose
-    Write-Host Deleted Resource Group - $webRGName
-}
-
-Write-Host Deleting Resource Group - $vnetRGName
-$input = Read-Host 'Do you want to delete it [Y/N] ?'
-if ($input.ToUpper().Equals("Y"))
-{
-    Remove-AzureRmResourceGroup -Name $vnetRGName -Force -Verbose
-    Write-Host Deleted Resource Group - $vnetRGName
-}
+$nicfw = Get-AzureRmNetworkInterface -ResourceGroupName JVH12-RG-NGF -Name JVH12-NIC-NGF0
+$nicfw.EnableIPForwarding = 1
+Set-AzureRmNetworkInterface -NetworkInterface $nicfw
