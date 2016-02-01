@@ -103,7 +103,7 @@ Write-Host Deleting Resource Group - $ngRGName
 $input = Read-Host 'Do you want to delete it [Y/N] ?'
 if ($input.ToUpper().Equals("Y"))
 {
-    Remove-AzureRmResourceGroup -Name $ngRGName -Force -Verbose
+    Remove-AzureRmResourceGroup -Name $ngRGName -Force
     Write-Host Deleted Resource Group - $ngRGName
 }
 
@@ -111,7 +111,7 @@ Write-Host Deleting Resource Group - $wafRGName
 $input = Read-Host 'Do you want to delete it [Y/N] ?'
 if ($input.ToUpper().Equals("Y"))
 {
-    Remove-AzureRmResourceGroup -Name $wafRGName -Force -Verbose
+    Remove-AzureRmResourceGroup -Name $wafRGName -Force
     Write-Host Deleted Resource Group - $wafRGName
 }
 
@@ -119,7 +119,7 @@ Write-Host Deleting Resource Group - $webRGName
 $input = Read-Host 'Do you want to delete it [Y/N] ?'
 if ($input.ToUpper().Equals("Y"))
 {
-    Remove-AzureRmResourceGroup -Name $webRGName -Force -Verbose
+    Remove-AzureRmResourceGroup -Name $webRGName -Force
     Write-Host Deleted Resource Group - $webRGName
 }
 
@@ -127,6 +127,6 @@ Write-Host Deleting Resource Group - $vnetRGName
 $input = Read-Host 'Do you want to delete it [Y/N] ?'
 if ($input.ToUpper().Equals("Y"))
 {
-    Remove-AzureRmResourceGroup -Name $vnetRGName -Force -Verbose
+    Remove-AzureRmResourceGroup -Name $vnetRGName -Force
     Write-Host Deleted Resource Group - $vnetRGName
 }
