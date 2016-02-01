@@ -257,14 +257,16 @@ Write-Host "Test: $vnetRTTableNameWEB - $vnetRGName - $location"
 $routeTableWeb = New-AzureRMRouteTable -Name $vnetRTTableNameWEB -ResourceGroupName $vnetRGName -Location $location
 
 # Route from WEB Subnet to WAF Subnet
-$routeTableWeb | Add-AzureRmRouteConfig `
+Add-AzureRmRouteConfig `
         -Name $vnetRTNameWEB1 `
+        -RouteTable $routeTableWeb `
         -AddressPrefix $subnetPrefixWAF `
         -NextHopType VirtualAppliance `
         -NextHopIpAddress $pipAddressNGF
 
-$routeTableWeb | Add-AzureRmRouteConfig `
+Add-AzureRmRouteConfig `
         -Name $vnetRTNameWEB2 `
+        -RouteTable $routeTableWeb `
         -AddressPrefix $vnetRTPrefixInternet `
         -NextHopType VirtualAppliance `
         -NextHopIpAddress $pipAddressNGF
@@ -291,8 +293,9 @@ Write-Host "Deploying the UDR Routing for WAF Subnet"
 $routeTableWAF = New-AzureRMRouteTable -Name $vnetRTTableNameWAF -ResourceGroupName $vnetRGName -Location $location
 
 # Route from WEB Subnet to WAF Subnet
-$routeTableWAF | Add-AzureRmRouteConfig `
+Add-AzureRmRouteConfig `
         -Name $vnetRTNameWAF1 `
+        -RouteTable $routeTableWAF `
         -AddressPrefix $subnetPrefixWEB `
         -NextHopType VirtualAppliance `
         -NextHopIpAddress $pipAddressNGF
