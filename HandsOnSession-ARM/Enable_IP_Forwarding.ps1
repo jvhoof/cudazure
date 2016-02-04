@@ -93,6 +93,6 @@ $prefix = Read-Host "Please provide an identifying prefix for all VM's being bui
 $ngRGName = "$prefix-RG-NGF"
 $ngInterfaceName = "$prefix-NIC-NGF0"
 
-$nicfw = Get-AzureRmNetworkInterface -ResourceGroupName JVH12-RG-NGF -Name JVH12-NIC-NGF0
+$nicfw = Get-AzureRmNetworkInterface -ResourceGroupName $ngRGName -Name $ngInterfaceName
 $nicfw.EnableIPForwarding = 1
 Set-AzureRmNetworkInterface -NetworkInterface $nicfw

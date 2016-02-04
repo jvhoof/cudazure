@@ -58,38 +58,18 @@ $array,
     return $b
 }
 
-#Checks if the right modules are present
 
-Import-Module AzureRM -ErrorAction SilentlyContinue -WarningAction SilentlyContinue
-
-If((Get-Module AzureRM)){
-$azurerm_version = (Get-Module -Name AzureRM).Version
-    if($azurerm_version.Major -ge 1 ){
-        Write-Host -ForegroundColor Green "AzureRM version $azurerm_version is present, please continue"
-    }else{
-        Write-Host -ForegroundColor Red "Warning AzureRM version $azurerm_version is present you need a minimum of 1.0.1"
-    }
-}else{
-Write-Host -ForegroundColor Red "Warning, cannot find the AzureRM Module"
-}
-
-#Authenticate into Azure
-#This section prompts for credentials and the selection to use
-
-if(!$azure_creds){$azure_creds = Get-Credential}
-
-Login-AzureRMAccount -Credential $azure_creds 
+Login-AzureRMAccount
 
 $subscriptionid = ([Scriptblock]::Create((Create-Menu-Choice -start_text "Please select a subscription" -array (Get-AzureRMSubscription) -valuecolumnname "SubscriptionId" -textcolumnname "SubscriptionName" )).Invoke())
 
 Select-AzureRMSubscription -SubscriptionId "$($subscriptionid)"
 
 if((Get-AzureRMSubscription).SubscriptionId -eq $subscriptionid){
-Write-Host "Now working in: $((Get-AzureRMSubscription).SubscriptionName)";
-}else{
-
-Write-Host "Unable to select the desired subscription";
-break;
+    Write-Host "Now working in: $((Get-AzureRMSubscription).SubscriptionName)";
+} else {
+    Write-Host "Unable to select the desired subscription";
+    break;
 }
 
 <##############################################################################################################
