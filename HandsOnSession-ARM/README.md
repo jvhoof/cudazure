@@ -2,7 +2,7 @@
 
 The following templates can be used to deploy the Barracuda solutions used in the Hands On Sessions.
 
-<img src="images/azurebuildingblock2.png"/>
+<img src="https://cloud.githubusercontent.com/assets/16628370/12847261/45d2c30e-cc12-11e5-951b-b2b99041746e.png"/>
 
 Deployment of the Networking, Barracuda NextGen Firewall, Barracuda Web Application Firewall and Windows Server can be started from the 'Deploy_ARM_Templates_PSv1.ps1' script. This script will create resources groups per component.
 
