@@ -1,13 +1,18 @@
-# Barracuda Hands On Session 2016
+# Barracuda Hands-On Session 2016
 
-The following templates can be used to deploy the Barracuda solutions used in the Hands On Sessions.
+The following ARM templates and Powershell script is used to deploy the Barracuda solutions used in a Hands-On Sessions.
 
 <img src="https://cloud.githubusercontent.com/assets/16628370/12847261/45d2c30e-cc12-11e5-951b-b2b99041746e.png"/>
 
-Deployment of the Networking, Barracuda NextGen Firewall, Barracuda Web Application Firewall and Windows Server can be started from the 'Deploy_ARM_Templates_PSv1.ps1' script. This script will create resources groups per component.
-
-Deploy User Defined Routing 
-<br/>
+The script will deploy the following components:
+<ul>
+    <li>VNET</li>
+    <li>Barracuda NextGen Firewall F-Series</li>
+    <li>Barracuda Web Application Firewall</li>
+    <li>Web Server</li>
+    <li>IP Forwarding</li>
+    <li>User Defined Routing</li>
+</ul>
 <!--
 <a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fjvhoof%2Fcudazure%2Fmaster%2FHandsOnSession-ARM%2FUDR_DeploymentTemplate.json" target="_blank">
     <img src="http://azuredeploy.net/deploybutton.png"/>
