@@ -57,27 +57,8 @@ $array,
     return $b
 }
 
-#Checks if the right modules are present
-
-Import-Module AzureRM -ErrorAction SilentlyContinue -WarningAction SilentlyContinue
-
-If((Get-Module AzureRM)){
-$azurerm_version = (Get-Module -Name AzureRM).Version
-    if($azurerm_version.Major -ge 1 ){
-        Write-Host -ForegroundColor Green "AzureRM version $azurerm_version is present, please continue"
-    }else{
-        Write-Host -ForegroundColor Red "Warning AzureRM version $azurerm_version is present you need a minimum of 1.0.1"
-    }
-}else{
-Write-Host -ForegroundColor Red "Warning, cannot find the AzureRM Module"
-}
-
 #Authenticate into Azure
-#This section prompts for credentials and the selection to use
-
-if(!$azure_creds){$azure_creds = Get-Credential}
-
-Login-AzureRMAccount -Credential $azure_creds 
+Login-AzureRMAccount
 
 $subscriptionid = ([Scriptblock]::Create((Create-Menu-Choice -start_text "Please select a subscription" -array (Get-AzureRMSubscription) -valuecolumnname "SubscriptionId" -textcolumnname "SubscriptionName" )).Invoke())
 
@@ -100,33 +81,35 @@ $webRGName = "$prefix-RG-WEB"
 $vnetRGName = "$prefix-RG-VNET" 
 
 Write-Host Deleting Resource Group - $ngRGName
-$input = Read-Host 'Do you want to delete it [Y/N] ?'
-if ($input.ToUpper().Equals("Y"))
-{
+$input = Read-Host 'Do you want to delete it [Y/N/A] ?'
+if ($input.ToUpper().Equals("Y") -Or $input.ToUpper().Equals("A")) {
     Remove-AzureRmResourceGroup -Name $ngRGName -Force
     Write-Host Deleted Resource Group - $ngRGName
 }
 
 Write-Host Deleting Resource Group - $wafRGName
-$input = Read-Host 'Do you want to delete it [Y/N] ?'
-if ($input.ToUpper().Equals("Y"))
-{
+if (! ($input.ToUpper().Equals("A"))) {
+    $input = Read-Host 'Do you want to delete it [Y/N] ?'
+}
+if ($input.ToUpper().Equals("Y") -Or $input.ToUpper().Equals("A")) {
     Remove-AzureRmResourceGroup -Name $wafRGName -Force
     Write-Host Deleted Resource Group - $wafRGName
 }
 
 Write-Host Deleting Resource Group - $webRGName
-$input = Read-Host 'Do you want to delete it [Y/N] ?'
-if ($input.ToUpper().Equals("Y"))
-{
+if (! ($input.ToUpper().Equals("A"))) {
+    $input = Read-Host 'Do you want to delete it [Y/N] ?'
+}
+if ($input.ToUpper().Equals("Y") -Or $input.ToUpper().Equals("A")) {
     Remove-AzureRmResourceGroup -Name $webRGName -Force
     Write-Host Deleted Resource Group - $webRGName
 }
 
 Write-Host Deleting Resource Group - $vnetRGName
-$input = Read-Host 'Do you want to delete it [Y/N] ?'
-if ($input.ToUpper().Equals("Y"))
-{
+if (! ($input.ToUpper().Equals("A"))) {
+    $input = Read-Host 'Do you want to delete it [Y/N] ?'
+}
+if ($input.ToUpper().Equals("Y") -Or $input.ToUpper().Equals("A")) {
     Remove-AzureRmResourceGroup -Name $vnetRGName -Force
     Write-Host Deleted Resource Group - $vnetRGName
 }
