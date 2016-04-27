@@ -116,7 +116,6 @@ $location = "$(([Scriptblock]::Create((Create-Menu-Choice -start_text "Please se
 $passwordVM = Read-Host -AsSecureString 'Please provide password for NGF and Web Server
 !! BEWARE: Password complexity rules [A-Za-z0-9] and special char !!' 
 $prefix = ""
-
 do {
     if( $prefix.length -gt 7 ) {
         Write-Host "ERROR: Prefix too long" -ForegroundColor Red
