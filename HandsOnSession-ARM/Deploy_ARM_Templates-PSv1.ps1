@@ -115,7 +115,15 @@ $location = "$(([Scriptblock]::Create((Create-Menu-Choice -start_text "Please se
 
 $passwordVM = Read-Host -AsSecureString 'Please provide password for NGF and Web Server
 !! BEWARE: Password complexity rules [A-Za-z0-9] and special char !!' 
-$prefix = Read-Host "`nPlease provide an identifying prefix for all VM's being build. e.g WeProd would become WeProd-VM-NGF (Max 19 char, no spaces, [A-Za-z0-9]"
+$prefix = ""
+
+do {
+    if( $prefix.length -gt 7 ) {
+        Write-Host "ERROR: Prefix too long" -ForegroundColor Red
+    }
+    $prefix = Read-Host "`nPlease provide an identifying prefix for all VM's being build. e.g WeProd would become WeProd-VM-NGF (Max 6 char, no spaces, [A-Za-z0-9]"
+} while ($prefix.length -gt 7)
+
 
 $storageAccountNGF = $prefix.ToLower() + "stngf" 
 $storageAccountWAF = $prefix.ToLower() + "stwaf" 
