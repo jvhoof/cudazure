@@ -72,7 +72,13 @@ Write-Host "Unable to select the desired subscription";
 break;
 }
 
-$prefix = Read-Host "Please provide an identifying prefix for all VM's being build. e.g WeProd would become WeProd-VM-NGF (Max 19 char, no spaces, [A-Za-z0-9]" 
+$prefix = ""
+do {
+    if( $prefix.length -gt 7 ) {
+        Write-Host "ERROR: Prefix too long" -ForegroundColor Red
+    }
+    $prefix = Read-Host "`nPlease provide an identifying prefix for all VM's being build. e.g WeProd would become WeProd-VM-NGF (Max 6 char, no spaces, [A-Za-z0-9]"
+} while ($prefix.length -gt 7)
 
 # Resource Groups parameters
 $ngRGName = "$prefix-RG-NGF"

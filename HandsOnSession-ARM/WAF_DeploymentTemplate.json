@@ -15,10 +15,10 @@
                 "description": "Password for the WAF"
             }
         },
-        "storageAccountName": {
+        "storageAccountNamePrefix": {
             "type": "string",
             "metadata": {
-                "description": "Unique DNS Name for the Storage Account of the Web Application Firewall"
+                "description": "Prefix for DNS Name for the Storage Account of the Web Application Firewall"
             }
         },
         "dnsNameForWAF": {
@@ -101,12 +101,13 @@
         "frontEndIPConfigID": "[concat(variables('lbID'),'/frontendIPConfigurations/loadBalancerFrontend')]",
         "lbPoolID": "[concat(variables('lbID'),'/backendAddressPools/loadBalancerBackend')]",
         "lbhttpProbeID": "[concat(variables('lbID'),'/probes/httpProbe')]",
-        "lbhttpsProbeID": "[concat(variables('lbID'),'/probes/httpsProbe')]"
+        "lbhttpsProbeID": "[concat(variables('lbID'),'/probes/httpsProbe')]",
+        "storageAccountName": "[toLower( concat( parameters('storageAccountNamePrefix'), uniqueString(resourceGroup().id) ) )]"        
     },
     "resources": [
         {
             "type": "Microsoft.Storage/storageAccounts",
-            "name": "[parameters('storageAccountName')]",
+            "name": "[variables('storageAccountName')]",
             "apiVersion": "2015-05-01-preview",
             "location": "[parameters('location')]",
             "tags": {
@@ -331,7 +332,7 @@
                      "Publisher": "[variables('imagePublisher')]"
             },
             "dependsOn": [
-                "[concat('Microsoft.Storage/storageAccounts/', parameters('storageAccountName'))]",
+                "[concat('Microsoft.Storage/storageAccounts/', variables('storageAccountName'))]",
                 "[concat('Microsoft.Network/networkInterfaces/', variables('nicNamePrefix'), copyindex())]",
                 "[concat('Microsoft.Compute/availabilitySets/', variables('WAFAvailabilitySet'))]"
             ],
@@ -357,7 +358,7 @@
                     "osDisk": {
                         "name": "osdisk",
                         "vhd": {
-                            "uri": "[concat('http://',parameters('storageAccountName'),'.blob.core.windows.net/vhds/','wafosdisk', copyindex(), '.vhd')]"
+                            "uri": "[concat('http://',variables('storageAccountName'),'.blob.core.windows.net/vhds/','wafosdisk', copyindex(), '.vhd')]"
                         },
                         "caching": "ReadWrite",
                         "createOption": "FromImage"
@@ -373,7 +374,7 @@
                 "diagnosticsProfile": {
                     "bootDiagnostics": {
                         "enabled": "true",
-                        "storageUri": "[concat('http://',parameters('storageAccountName'),'.blob.core.windows.net')]"
+                        "storageUri": "[concat('http://',variables('storageAccountName'),'.blob.core.windows.net')]"
                     }
                 }
             }

@@ -109,7 +109,7 @@ if((Get-AzureRMSubscription).SubscriptionId -eq $subscriptionid){
 # All other parameters need to be changed or are predefined using the prefix value to make them unique.
 ##############################################################################################################>
 
-#get's a list of locations based upon the where virtual machines can be built.
+# get's a list of locations based upon the where virtual machines can be built.
 $locations = ((Get-AzureRmResourceProvider -ProviderNamespace Microsoft.Compute).ResourceTypes | Where-Object -FilterScript {$_.ResourceTypeName -eq 'virtualMachines'}).Locations
 $location = "$(([Scriptblock]::Create((Create-Menu-Choice -start_text "Please select a datacenter" -array ($locations))).Invoke()))"
 
@@ -122,7 +122,6 @@ do {
     }
     $prefix = Read-Host "`nPlease provide an identifying prefix for all VM's being build. e.g WeProd would become WeProd-VM-NGF (Max 6 char, no spaces, [A-Za-z0-9]"
 } while ($prefix.length -gt 7)
-
 
 $storageAccountNGF = $prefix.ToLower() + "stngf" 
 $storageAccountWAF = $prefix.ToLower() + "stwaf" 
@@ -201,7 +200,7 @@ try {
     Write-Host "Deploying Barracuda NextGen Firewall F Series"
     New-AzureRMResourceGroupDeployment -Name "Deploy_Barracuda_NextGen" -ResourceGroupName $ngRGName `
         -TemplateFile "NG_DeploymentTemplate.json" -location "$location" `
-        -adminPassword $passwordVM -storageAccount "$storageAccountNGF" -dnsNameForNGF "$dnsNameForNGF" `
+        -adminPassword $passwordVM -storageAccountNamePrefix "$storageAccountNGF" -dnsNameForNGF "$dnsNameForNGF" `
         -vNetResourceGroup "$vnetRGName" -prefix "$prefix" -vNETName "$vNETName" `
         -subnetNameNGF "$subnetNameNGF" -subnetPrefixNGF "$subnetPrefixNGF" -pipAddressNGF "$pipAddressNGF" `
         -subnetGatewayIP "$subnetGatewayIP" -vmSize "$vmSizeNGF" -imageSKU "$imageSKU"
@@ -209,6 +208,7 @@ try {
     write-host "Caught an exception while deploying the Barracuda NextGen Firewall F-Series:" -ForegroundColor Red
     write-host "Exception Type: $($_.Exception.GetType().FullName)" -ForegroundColor Red
     write-host "Exception Message: $($_.Exception.Message)" -ForegroundColor Red
+    throw "Please review error, delete resources and redeploy"
 }
 
 try {
@@ -219,7 +219,7 @@ try {
     Write-Host "Deploying Barracuda Web Application Firewall"
     New-AzureRMResourceGroupDeployment -Name "Deploy_Barracuda_WAF" -ResourceGroupName $wafRGName `
         -TemplateFile "WAF_DeploymentTemplate.json" -location "$location" `
-        -adminPassword $passwordVM -storageAccount "$storageAccountWAF" -dnsNameForWAF "$dnsNameForWAF" `
+        -adminPassword $passwordVM -storageAccountNamePrefix "$storageAccountWAF" -dnsNameForWAF "$dnsNameForWAF" `
         -vNetResourceGroup "$vnetRGName" -prefix "$prefix" -vNETName "$vNETName" `
         -subnetNameWAF "$subnetNameWAF" -subnetPrefixWAF "$subnetPrefixWAF" `
         -vmSize $vmSizeWAF -imageSKU $imageSKU
@@ -227,6 +227,7 @@ try {
     write-host "Caught an exception while deploying the Barracuda Web Application Firewall:" -ForegroundColor Red
     write-host "Exception Type: $($_.Exception.GetType().FullName)" -ForegroundColor Red
     write-host "Exception Message: $($_.Exception.Message)" -ForegroundColor Red
+    throw "Please review error, delete resources and redeploy"
 }
 
 try {
@@ -237,13 +238,14 @@ try {
     Write-Host "Deploying the Web Server"
     New-AzureRMResourceGroupDeployment -Name "Deploy_Web_Servers" -ResourceGroupName $webRGName `
         -TemplateFile "WEB_DeploymentTemplate.json" -location "$location" `
-        -adminPassword $passwordVM -storageAccount "$storageAccountWEB" `
+        -adminPassword $passwordVM -storageAccountNamePrefix "$storageAccountWEB" `
         -vNetResourceGroup "$vnetRGName" -prefix "$prefix" -vNETName "$vNETName" `
         -subnetNameWEB "$subnetNameWEB" -vmSize $vmSizeWEB
 } catch { 
-    write-host "Caught an exceptionwhile deploying the Web Server:" -ForegroundColor Red
+    write-host "Caught an exception while deploying the Web Server:" -ForegroundColor Red
     write-host "Exception Type: $($_.Exception.GetType().FullName)" -ForegroundColor Red
     write-host "Exception Message: $($_.Exception.Message)" -ForegroundColor Red
+    throw "Please review error, delete resources and redeploy"
 }
 
 <##############################################################################################################
@@ -275,14 +277,16 @@ try {
         if($i -eq 1){
            $gw=$($nic.IpConfigurations.PrivateIPAddress)
         }
-        Write-Host "NG: $($ng.Name)"
-        Write-Host "NG IP: $($nic.IpConfigurations.PrivateIPAddress)"
-        Write-Host "NG IP: $($nic.EnableIPForwarding)"
+        Write-Host "IP Forwarding for NGF"
+        Write-Host "NGF: $($ng.Name)"
+        Write-Host "NGF IP: $($nic.IpConfigurations.PrivateIPAddress)"
+        Write-Host "NGF IP: $($nic.EnableIPForwarding)"
     }
 } catch { 
     write-host "Caught an exception while enabling IP Forwarding:" -ForegroundColor Red
     write-host "Exception Type: $($_.Exception.GetType().FullName)" -ForegroundColor Red
     write-host "Exception Message: $($_.Exception.Message)" -ForegroundColor Red
+    throw "Please review error, delete resources and redeploy"
 }
 
 
@@ -371,6 +375,7 @@ try {
     write-host "Caught an exception while deploying User Defined Routing:" -ForegroundColor Red
     write-host "Exception Type: $($_.Exception.GetType().FullName)" -ForegroundColor Red
     write-host "Exception Message: $($_.Exception.Message)" -ForegroundColor Red
+    throw "Please review error, delete resources and redeploy"
 }
 
 Write-Host "
@@ -380,7 +385,7 @@ Write-Host "
 
  NGF:
  IP address: Azure Portal. Check the NGF system IP.
- Username: azureuser
+ Username: root
  Password: (configured during the deployment script) 
  
  WAF:

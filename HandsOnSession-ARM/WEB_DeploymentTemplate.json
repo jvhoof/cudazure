@@ -9,10 +9,10 @@
                 "description": "Location to deploy (e.g. West Europe)"
             }
         },
-        "storageAccountName": {
+        "storageAccountNamePrefix": {
             "type": "string",
             "metadata": {
-                "description": "Unique DNS Name for the Storage Account where the Virtual Machine's disks will be placed"
+                "description": "Prefix for DNS Name for the Storage Account where the Virtual Machine's disks will be placed"
             }
         },
         "adminPassword": {
@@ -74,12 +74,13 @@
         "publicIPAddressType": "Dynamic",
         "vmStorageAccountContainerName": "vhds",
         "vnetID": "[resourceId(parameters('vNetResourceGroup'),'Microsoft.Network/virtualNetworks',parameters('vNETName'))]",
-        "subnetRef": "[concat(variables('vnetID'),'/subnets/',parameters('subnetNameWEB'))]"
+        "subnetRef": "[concat(variables('vnetID'),'/subnets/',parameters('subnetNameWEB'))]",
+        "storageAccountName": "[toLower( concat( parameters('storageAccountNamePrefix'), uniqueString(resourceGroup().id) ) )]"                
     },
     "resources": [
         {
             "type": "Microsoft.Storage/storageAccounts",
-            "name": "[parameters('storageAccountName')]",
+            "name": "[variables('storageAccountName')]",
             "apiVersion": "2015-05-01-preview",
             "location": "[parameters('location')]",
             "tags": {
@@ -133,7 +134,7 @@
             },
             "location": "[parameters('location')]",
             "dependsOn": [
-                "[concat('Microsoft.Storage/storageAccounts/', parameters('storageAccountName'))]",
+                "[concat('Microsoft.Storage/storageAccounts/', variables('storageAccountName'))]",
                 "[concat('Microsoft.Network/networkInterfaces/', variables('nicNamePrefix'), copyindex())]",
                 "[concat('Microsoft.Compute/availabilitySets/', variables('WEBAvailabilitySet'))]"
             ],
@@ -159,7 +160,7 @@
                     "osDisk": {
                         "name": "osdisk",
                         "vhd": {
-                            "uri": "[concat('http://',parameters('storageAccountName'),'.blob.core.windows.net/vhds/','osdisk', copyindex(), '.vhd')]"
+                            "uri": "[concat('http://',variables('storageAccountName'),'.blob.core.windows.net/vhds/','osdisk', copyindex(), '.vhd')]"
                         },
                         "caching": "ReadWrite",
                         "createOption": "FromImage"
@@ -175,7 +176,7 @@
                 "diagnosticsProfile": {
                     "bootDiagnostics": {
                         "enabled": "true",
-                        "storageUri": "[concat('http://',parameters('storageAccountName'),'.blob.core.windows.net')]"
+                        "storageUri": "[concat('http://',variables('storageAccountName'),'.blob.core.windows.net')]"
                     }
                 }
             }
