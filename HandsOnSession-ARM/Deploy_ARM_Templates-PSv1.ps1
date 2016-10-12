@@ -113,8 +113,8 @@ if((Get-AzureRMSubscription).SubscriptionId -eq $subscriptionid){
 $locations = ((Get-AzureRmResourceProvider -ProviderNamespace Microsoft.Compute).ResourceTypes | Where-Object -FilterScript {$_.ResourceTypeName -eq 'virtualMachines'}).Locations
 $location = "$(([Scriptblock]::Create((Create-Menu-Choice -start_text "Please select a datacenter" -array ($locations))).Invoke()))"
 
-$passwordVM = Read-Host -AsSecureString 'Please provide password for NGF and Web Server
-!! BEWARE: Password complexity rules [A-Za-z0-9] and special char !!' 
+$passwordVM = Read-Host -AsSecureString 'Please provide password for NGF, WAF and Web Server
+!! BEWARE: Password complexity rules 12 characters, [A-Za-z0-9] and special char !!' 
 $prefix = ""
 do {
     if( $prefix.length -gt 7 ) {
@@ -384,14 +384,16 @@ Write-Host "
  Script Finished. You can now configure the devices.
 
  NGF:
- IP address: Azure Portal. Check the NGF system IP.
+ IP address: Azure Portal. Check the NGF public interface IP.
+ Port 807
  Username: root
  Password: (configured during the deployment script) 
  
  WAF:
  IP address: Azure portal. Check the WAF LB.
+ Port: 8001
  Username: admin
- Password: admin
+ Password: (configured during the deployment script)
  
  Web Server:
  IP address: Publish the Web server via the NGF 
