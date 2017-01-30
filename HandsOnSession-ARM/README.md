@@ -2,7 +2,7 @@
 
 The following ARM templates and Powershell script is used to deploy the Barracuda solutions used in a Hands-On Sessions.
 
-<img src="https://cloud.githubusercontent.com/assets/16628370/12847261/45d2c30e-cc12-11e5-951b-b2b99041746e.png"/>
+<img src="https://cloud.githubusercontent.com/assets/16628370/22439212/0a4245c4-e72f-11e6-8ee4-1c40f8480797.png"/>
 
 The script will deploy the following components:
 <ul>
