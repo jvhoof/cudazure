@@ -215,7 +215,7 @@
                             },
 
                             "protocol": "Tcp",
-                            "frontendPort": 8001,
+                            "frontendPort": 8000,
                             "backendPort": 8000,
                             "enabledFloatingIP": false
                         }
@@ -228,7 +228,7 @@
                             },
 
                             "protocol": "Tcp",
-                            "frontendPort": 8002,
+                            "frontendPort": 8001,
                             "backendPort": 8000,
                             "enabledFloatingIP": false
                         }
@@ -241,7 +241,7 @@
                             },
 
                             "protocol": "Tcp",
-                            "frontendPort": 8441,
+                            "frontendPort": 8443,
                             "backendPort": 8443,
                             "enabledFloatingIP": false
                         }
@@ -254,7 +254,7 @@
                             },
 
                             "protocol": "Tcp",
-                            "frontendPort": 8442,
+                            "frontendPort": 8444,
                             "backendPort": 8443,
                             "enabledFloatingIP": false
                         }

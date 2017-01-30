@@ -260,7 +260,7 @@ End of the section that deploys the VNET, NGF, WAF and Web Server
 # to false regardless of the setting in the json
 #
 ##############################################################################################################>
-
+<#
 try {
     $ng_vms = (Get-AzureRMVM -ResourceGroupName $ngRGName | Where-Object -FilterScript {$_.Plan.Product -eq "barracuda-ng-firewall"})
 
@@ -288,7 +288,7 @@ try {
     write-host "Exception Message: $($_.Exception.Message)" -ForegroundColor Red
     throw "Please review error, delete resources and redeploy"
 }
-
+#>
 
 <##############################################################################################################
 #
@@ -391,7 +391,7 @@ Write-Host "
  
  WAF:
  IP address: Azure portal. Check the WAF LB.
- Port: 8001
+ Port: 8000 (http) or 8443 (https)
  Username: admin
  Password: (configured during the deployment script)
  

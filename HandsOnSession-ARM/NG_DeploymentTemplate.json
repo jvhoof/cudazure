@@ -182,6 +182,7 @@
                 "[concat('Microsoft.Network/publicIPAddresses/',variables('nicNamePrefix'), copyindex())]"
             ],
             "properties": {
+                "enableIPForwarding": true,
                 "ipConfigurations": [
                     {
                         "name": "ipconfig1",
@@ -198,8 +199,7 @@
                                 {
                                     "id": "[concat(variables('lbID'), '/backendAddressPools/LoadBalancerBackend')]"
                                 }
-                            ],
-                            "enableIPForwarding": true
+                            ]
                         }
                     }
                 ]
